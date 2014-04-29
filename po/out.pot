@@ -1,0 +1,232 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTIONS"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTION_DELETE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTION_DELETE_MAP"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+msgid "ALL_MAPS"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+msgid "Add form"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+msgid "BUTTON_ADD_LABEL"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "BUTTON_LOCATE_HERE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROLS"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROLS_HELP"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_FULLSCREEN"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_GEOCODER"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_LAYER"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_MINIMAP"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_ZOOM"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "COPY_PASTE_IFRAME_DESC"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "COPY_PAST_LINK_DESC"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "DESCRIPTION"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Display this map"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "EDIT_MAP {{currentMap.title}}"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Features"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "HEIGHT"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "INFORMATION"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Item added"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Item deleted"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Keyword deleted"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_AVAILABLE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_DISPLAYED"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE_AVAILABLE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE_DISPLAYED"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/index.html
+msgid "LOGOUT"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "MAP"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map added"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map deleted"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map saved"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Name saved"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in Google Maps"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in OpenStreetMap editor"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in Wikipedia"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Reset zoom and position"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Resource"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "SHARE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "SNIPPET"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Save zoom and position"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Surface saved"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "TARGET"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "TEXT"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "TITLE"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "URL"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Vocation added"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Vocation deleted"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "WIDTH"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You cannot add vocation to project without a surface"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You cannot add vocation to project without select a vocation"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You choose a vocation to delete it"
+msgstr ""
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You must select a vocation to delete it"
+msgstr ""

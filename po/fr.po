@@ -1,0 +1,337 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: carteeco\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2014-04-23 14:56+0100\n"
+"Last-Translator: jmf <jmf@makina-corpus.com>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.4\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTIONS"
+msgstr "Actions"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTION_DELETE"
+msgstr "Supprimer"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "ACTION_DELETE_MAP"
+msgstr "Supprimer cette carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "ADDRESS"
+msgstr "Adresse"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "ADD_FORM"
+msgstr "Formulaire d'ajout"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+msgid "ALL_MAPS"
+msgstr "Toutes les cartes"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/index.html
+msgid "APP_TITLE"
+msgstr "Nantes Métropole Développement"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+msgid "Add form"
+msgstr "Formulaire d'ajout"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/images.js
+msgid "An error occured during image upload"
+msgstr "Une erreur est survenue durant le téléchargement de l'image"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/maps.html
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "BUTTON_ADD_LABEL"
+msgstr "Ajouter"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "BUTTON_LOCATE_HERE"
+msgstr "Localiser ici"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROLS"
+msgstr "Contrôles"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROLS_HELP"
+msgstr ""
+"Ce formulaire permet de choisir d'afficher ou de cacher les éléments de "
+"contrôle de la carte."
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_FULLSCREEN"
+msgstr "Contrôle plein écran"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_GEOCODER"
+msgstr "Recherche par adresse"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_LAYER"
+msgstr "Contrôle des couches (haut droit)"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_MINIMAP"
+msgstr "Mini carte (bas droite)"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "CONTROL_ZOOM"
+msgstr "Zoom (haut gauche)"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "COPY_PASTE_IFRAME_DESC"
+msgstr ""
+"Copier / Coller ce snippet HTML dans votre site pour afficher cette carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "COPY_PAST_LINK_DESC"
+msgstr ""
+"Copier / Coller ce lien HTML dans votre site pour afficher un lien vers "
+"cette carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "DESCRIPTION"
+msgstr "Description"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Display this map"
+msgstr "Afficher cette carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "EDIT_MAP {{currentMap.title}}"
+msgstr "Modifier la carte {{currentMap.title}}"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Features"
+msgstr "Features"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "HEIGHT"
+msgstr "Hauteur"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "INFORMATION"
+msgstr "Information"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/images.js
+msgid "Image added"
+msgstr "Image ajoutée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/images.js
+msgid "Image deleted"
+msgstr "Image supprimée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Item added"
+msgstr "Elément ajouté"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Item deleted"
+msgstr "Elément supprimé"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Keyword deleted"
+msgstr "Mot-clé supprimé"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS"
+msgstr "Couches de données"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_AVAILABLE"
+msgstr "Couches de données disponibles"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_DISPLAYED"
+msgstr "Donnée(s) affichée(s) sur la carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE"
+msgstr "Fonds de carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE_AVAILABLE"
+msgstr "Fonds de carte disponibles"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "LAYERS_TILE_DISPLAYED"
+msgstr "Fond(s) de carte affichable(s)"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/index.html
+msgid "LOGOUT"
+msgstr "Se déconnecter"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "MAP"
+msgstr "Carte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map added"
+msgstr "Carte ajoutée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map deleted"
+msgstr "Carte supprimée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/maps.js
+msgid "Map saved"
+msgstr "Carte enregistrée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "NMD_ALL_PROJECTS"
+msgstr "Tous les projets"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "NMD_NO_SELECTED_PROJECT"
+msgstr ""
+"Aucun projet n'est sélectionnée. Veuillez sélectionner un projet ou en créer "
+"un nouveau."
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "NMD_PROJECT"
+msgstr "Projet"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "NMD_PROJECT_NAME"
+msgstr "Nom du projet"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/nmd_immo.html
+msgid "NMD_SEARCH_PROJECT"
+msgstr "Rechercher un projet"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Name saved"
+msgstr "Nom enregistré"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in Google Maps"
+msgstr "Ouvrir dans Google Maps"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in OpenStreetMap editor"
+msgstr "Ouvrir dans OpenStreetMap"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Open in Wikipedia"
+msgstr "Ouvrir dans Wikipedia"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/immo.js
+msgid "Project added"
+msgstr "Projet ajouté"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/immo.js
+msgid "Project deleted"
+msgstr "Projet supprimé"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/immo.js
+msgid "Project saved"
+msgstr "Project enregistré"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Reset zoom and position"
+msgstr "Remettre le zoom et la position d'origine"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/opendata.html
+msgid "Resource"
+msgstr "Ressource"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "SHARE"
+msgstr "Partager"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "SNIPPET"
+msgstr "Code (snippet)"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "Save zoom and position"
+msgstr "Enregistrer le zoom et la position"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Surface saved"
+msgstr "Surface enregistrée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "TARGET"
+msgstr "Cible"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "TEXT"
+msgstr "Texte"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/edit.html
+msgid "TITLE"
+msgstr "Titre"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/immo.js
+msgid "Title cannot be empty"
+msgstr "Le titre ne peut pas être vide"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "URL"
+msgstr "URL"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Vocation added"
+msgstr "Vocation ajoutée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "Vocation deleted"
+msgstr "Vocation supprimée"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/static/admin/partials/share.html
+msgid "WIDTH"
+msgstr "Largeur"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You cannot add vocation to project without a surface"
+msgstr "Vous ne pouvez pas ajouter une vocation à une projet sans une surface"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You cannot add vocation to project without select a vocation"
+msgstr ""
+"Vous ne pouvez pas ajouter une vocation à un projet sans choisir de vocation"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You choose a vocation to delete it"
+msgstr "Vous devez choisir une vocation pour la supprimer"
+
+#: /Users/toutpt/makina/nmd/carteeco/mockup/src/admin/directives.js
+msgid "You must select a vocation to delete it"
+msgstr "Vous devez sélectionner une vocation pour la supprimer"
+
+#~ msgid "CONTROL_ROUTING"
+#~ msgstr "Itinéraire"
+
+#~ msgid "NO_SELECTED_MAP"
+#~ msgstr ""
+#~ "Aucune carte n'est sélectionnée. Veuillez sélectionner une carte ou en "
+#~ "créer une nouvelle."
+
+#~ msgid "ACTION_SAVE_MAP"
+#~ msgstr "Enregistrer cette carte"
+
+#~ msgid "Tag added"
+#~ msgstr "Mot-clé ajouté"
+
+#~ msgid "Tag deleted"
+#~ msgstr "Mot-clé supprimé"
+
+#~ msgid "Tag selected"
+#~ msgstr "Mot-clé sélectionné"
+
+#~ msgid "Tag unselected"
+#~ msgstr "Mot-clé déselectionné"

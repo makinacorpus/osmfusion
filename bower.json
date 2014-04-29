@@ -1,0 +1,43 @@
+{
+  "name": "osmfusion",
+  "version": "0.1",
+  "homepage": "http://makinacorpus.github.com/osmfusion",
+  "authors": [
+    "JeanMichel FRANCOIS <jeanmichel.francois@makina-corpus.com>"
+  ],
+  "description": "Import geojson data into OpenStreetMap",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "angular": "1.2.15",
+    "angular-animate": "1.2.15",
+    "angular-bootstrap": "~0.10.0",
+    "angular-carousel": "*",
+    "angular-cookies": "1.2.15",
+    "angular-leaflet": "0.7.5",
+    "angular-loader": "1.2.15",
+    "angular-mocks": "1.2.15",
+    "angular-resource": "1.2.15",
+    "angular-route": "1.2.15",
+    "angular-sanitize": "1.2.15",
+    "angular-scenario": "1.2.15",
+    "angular-touch": "1.2.15",
+    "bootstrap": "~3.0.3",
+    "jquery1": "jquery#1.11.0",
+    "leaflet-dist": "0.7.2",
+    "font-awesome": "~4.0.3",
+    "angular-gettext": "~0.2.6",
+    "angular-ui-utils": "bower-keypress",
+    "angular-base64": "~2.0.1"
+  },
+  "resolutions": {
+    "angular": "1.2.15",
+    "angular-animate": "1.2.15",
+    "angular-route": "1.2.15",
+    "angular-mocks": "1.2.15"
+  }
+}

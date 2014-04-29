@@ -1,0 +1,7 @@
+/.cover*
+*.mo
+/bower_components
+!.gitkeep
+.DS_Store
+.idea
+/static

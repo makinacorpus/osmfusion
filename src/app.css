@@ -1,0 +1,5 @@
+/* app css stylesheet */
+.map-editor{min-height: 450px;}
+.form-horizontal .control-label {
+text-align: left;
+}
