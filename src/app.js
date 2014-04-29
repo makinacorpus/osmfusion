@@ -3,7 +3,7 @@
 
 'use strict';
 
-L.Icon.Default.imagePath = '/images';
+L.Icon.Default.imagePath = 'images';
 //create all myApp modules
 angular.module('myApp', [
     'ngRoute',
