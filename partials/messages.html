@@ -1,0 +1,5 @@
+<div ng-controller="UserMessagesController">
+	<div ng-repeat="alert in messages" style="overflow: scroll; max-height: 400px;">
+		<alert type="alert.type" close="closeAlert($index)">{{alert.text | translate}}</alert>
+	</div>
+</div>

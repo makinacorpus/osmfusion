@@ -1,0 +1,47 @@
+<div id="maps-wrapper" class="row">
+  <div class="col-md-4">
+
+    <div ng-include="'./partials/messages.html'"></div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading" translate>Add form</div>
+      <div class="panel-body">
+        <div class="form-group" ui-keypress="{13:'addMap()'}">
+          <input type="text" class="form-control"
+          placeholder="Titre" ng-model="newMap">
+        </div>
+        <div class="form-group">
+          <a class="btn btn-primary" ng-click="addMap()"><i class="fa fa-plus-square-o"></i> {{'BUTTON_ADD_LABEL' | translate}}</a>
+        </div>
+      </div>
+    </div>
+
+
+    <div ng-include="'./partials/share.html'"></div>
+  </div>
+
+  <div class="col-md-8">
+
+    <div ng-include="'./partials/edit.html'"></div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading">{{'ALL_MAPS' | translate}}</div>
+      <div class="panel-body">
+
+      <div class="input-group margin-bottom-sm">
+          <input type="search" class="form-control" ng-model="q" placeholder="Rechercher une carte" />
+          <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
+      </div>
+      <div class="list-group">
+          <a class="list-group-item" title="{{map.description}}"
+             ng-repeat="map in maps | filter:q"
+             ng-class="{'active': currentMap.id === map.id}"
+             ng-click="setCurrentMap(map)">
+             {{map.title}}</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

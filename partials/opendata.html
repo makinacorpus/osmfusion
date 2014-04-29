@@ -1,0 +1,203 @@
+<style>
+.angular-google-map-container { height: 400px; }
+</style>
+<div id="maps-wrapper" class="row">
+  <div class="col-md-4">
+
+    <div ng-include="'./partials/messages.html'"></div>
+    <div class="panel panel-default">
+      <div class="panel-heading" translate>OSM Login</div>
+      <div class="panel-body">
+        <div class="form-group">
+          <input type="text" name="username" class="form-control" ng-model="username" placeholder="username"/>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" class="form-control" ng-model="password" placeholder="password"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading" translate>Source Features</div>
+      <div class="panel-body">
+      <div class="input-group margin-bottom-sm">
+          <input type="search" class="form-control" ng-model="q" placeholder="Rechercher une feature" />
+          <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
+      </div>
+        <div class="list-group">
+          <a class="list-group-item" title="{{getFeatureName(feature)}}"
+             ng-repeat="feature in features | filter:q"
+             ng-class="{'active': getFeatureID(currentFeature) === getFeatureID(feature)}"
+             ng-click="setCurrentFeature(feature)">
+              [{{getFeatureID(feature)}}] {{getFeatureName(feature)}}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="form-group">
+      <div class="input-group margin-bottom-sm">
+        <input type="text" class="form-control" ng-model="geojson"/>
+        <span class="input-group-addon">
+          <i class="fa fa-refresh fa-spin" nf-if="loading.geojson"></i>
+          <i class="fa fa-check fa-fw text-success" ng-if="loading.geojsonsuccess"></i>
+          <i class="fa fa-times fa-fw text-danger" ng-if="loading.geojsonerror"></i>
+        </span>
+      </div>
+
+    </div>
+    <accordion>
+      <accordion-group heading="Configuration" is-open="false">
+        <p class="help-block">Configure the way Source features are loaded</p>
+        <table class="table table-condensed">
+          <tr>
+            <td>Feature ID</td>
+            <td>
+              <input type="text" class="form-control" ng-model="featureID"/>
+            </td>
+            <td>{{getFeatureID(currentFeature)}}</td>
+          </tr>
+          <tr>
+            <td>Feature name</td>
+            <td>
+              <input type="text" class="form-control" ng-model="featureName"/>
+            </td>
+            <td>{{getFeatureName(currentFeature)}}</td>
+          </tr>
+        </table>
+<div class="panel panel-default">
+  <div class="panel-heading">Target Features</div>
+  <div class="panel-body">
+
+        <p class="help-block">To load existing features from OSM we use the overpass API. You have to provide a query here that will return them automaticly each time you choose a feature from Opendata. To learn more about overpass api query language read the following <a href="http://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide">Query language guide</a></p>
+        <div class="form-group">
+          <input type="text" name="overpassquery" class="form-control" ng-model="overpassquery" placeholder="Overpass API query"/>
+        </div>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">OSM Tags Mapping</div>
+  <div class="panel-body">
+
+        <p>You can write angular expression to fill the value that will be used to insert / update OSM database. For more information about angular expression please read the following <a href="https://docs.angularjs.org/guide/expression">Angular Expressions</a></p>
+        <table class="table table-condensed">
+          <tr ng-repeat="(key, value) in osmtags track by $index">
+            <td width="20px">
+              <button class="btn btn-danger" ng-click="deleteOSMTag(key)"><i class="fa fa-times-circle-o"></i></button>
+            </td>
+            <td>
+              {{key}}
+            </td>
+            <td>
+              <input class="form-control" type="text" ng-model="osmtags[key]"/>
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              <input type="text" class="form-control" ng-model="newOSMKey" placeholder="key"/>
+            </td>
+            <td>
+              <input type="text" class="form-control" ng-model="newOSMValueExpr" placeholder="value expression"/>
+            </td>
+          </tr>
+        </table>
+        <button class="btn btn-default" ng-click="addOSMTag()">Add tag</button>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-body">
+        <table class="table table-condensed">
+          <tr ng-repeat="(key, value) in currentFeature.properties">
+            <td>
+              {{key}}
+            </td>
+            <td>
+              <input class="form-control" type="text" value="{{value}}"/>
+            </td>
+          </tr>
+        </table>
+  </div>
+</div>
+
+      </accordion-group>
+    </accordion>
+    <leaflet center="currentMap" markers="markers" width="100%" height="600"></leaflet>
+
+    <a target="_blank" ng-href="http://fr.wikipedia.org/w/index.php?search={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Wikipedia</a>
+    <a target="_blank" ng-href="https://www.google.com/maps?t=m&ll={{currentMap.lat}},{{currentMap.lng}}&z=18&output=classic&dg=opt&q={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Google Maps</a>
+    <a target="_blank" ng-href="https://openstreetmap.org/edit#map=19/{{currentMap.lat}}/{{currentMap.lng}}" class="btn btn-default" translate>Open in OpenStreetMap editor</a>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+      <div ng-if="currentFeature">
+        <h2>Found features from OSM</h2>
+        <p class="help-block">Please select one if you want to update it or check it's values</p>
+        <div class="list-group">
+          <a class="list-group-item"
+             ng-repeat="node in nodes"
+             ng-class="{'active': currentNode.properties.id === node.properties.id}"
+             ng-click="setCurrentNode(node)">
+              [{{node.properties.id}}] {{node.properties.name}}</a>
+        </div>
+      </div>
+
+        <div ng-if="currentNode">
+          <table class="table table-condensed">
+            <tr>
+              <th>Tag</th>
+              <th>Value</th>
+              <th></th>
+              <th>Updated value</th>
+              <th></th>
+            </tr>
+            <tr ng-repeat="(key, value) in updatedNode.properties" ng-class="getTableRowClass(key, value)">
+              <td>
+                {{key}}
+              </td>
+              <td width="30%">
+                {{currentNode.properties[key]}}
+              </td>
+              <td width="20px">
+                <button tooltip="reset value to original" class="btn btn-xs btn-warning" ng-click="updatedNode.properties[key] = currentNode.properties[key]"><i class="fa fa-arrow-circle-o-right"></i></button>
+              </td>
+              <td>
+                <input type="text" class="form-control" ng-model="updatedNode.properties[key]"/>
+
+              </td>
+              <td width="20px">
+                <button tooltip="delete that new value" class="btn btn-xs btn-danger" ng-click="updatedNode.properties[key] = undefined"><i class="fa fa-times-circle-o"></i></button>
+              </td>
+            </tr>
+          </table>
+
+          <button class="btn btn-primary btn-lg" ng-click="updateOSM()">Update OSM</button>
+        </div>
+        <div ng-if="currentFeature.osm">
+          <h2>Current source feature transformed for OSM</h2>
+          <p class="help-block">This table sum up the current feature transformed by your configuration, so ready to be added to osm ?</p>
+          <table class="table table-condensed">
+            <tr>
+              <th>Tag</th>
+              <th>Value</th>
+            </tr>
+            <tr ng-repeat="(key, value) in currentFeature.osm">
+              <td>
+                {{key}}
+              </td>
+              <td>
+                <input type="text" class="form-control" ng-model="currentFeature.osm[key]"/>
+              </td>
+            </tr>
+          </table>
+          <button class="btn btn-primary btn-lg" ng-click="addToOSM()" >Add to OSM</button>
+        </div>
+
+  </div>
+</div>
+
+
+  </div>
+
+</div>
