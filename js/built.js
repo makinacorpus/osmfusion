@@ -3,7 +3,7 @@
 
 'use strict';
 
-L.Icon.Default.imagePath = '/images';
+L.Icon.Default.imagePath = 'images';
 //create all myApp modules
 angular.module('myApp', [
     'ngRoute',
@@ -642,7 +642,7 @@ angular.module('myApp.services').factory('osmService',
 
 angular.module("gettext").run(['$http', 'gettextCatalog',
 	function ($http, gettextCatalog) {
-	$http.get('/translations/fr.json').then(function(translations){
+	$http.get('translations/fr.json').then(function(translations){
 		gettextCatalog.setStrings('fr', translations.data.fr);
 	});
 }]);
