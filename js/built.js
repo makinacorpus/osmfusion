@@ -292,17 +292,151 @@ angular.module('myApp.controllers').controller(
 
 /*jshint strict:false */
 /*global angular:false */
+angular.module('myApp.services').factory('osmService',
+    ['$base64', '$cookieStore', '$http', '$q',
+    function ($base64, $cookieStore, $http, $q) {
+        var API = 'http://api.openstreetmap.org/api';
+        // initialize to whatever is in the cookie, if anything
+        //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
+        var parseXml;
+        var encoded;
+
+        if (typeof window.DOMParser !== 'undefined') {
+            parseXml = function(xmlStr) {
+                return ( new window.DOMParser() ).parseFromString(xmlStr, 'text/xml');
+            };
+        } else if (typeof window.ActiveXObject !== 'undefined' &&
+               new window.ActiveXObject('Microsoft.XMLDOM')) {
+            parseXml = function(xmlStr) {
+                var xmlDoc = new window.ActiveXObject('Microsoft.XMLDOM');
+                xmlDoc.async = 'false';
+                xmlDoc.loadXML(xmlStr);
+                return xmlDoc;
+            };
+        } else {
+            throw new Error('No XML parser found');
+        }
+
+        return {
+            validateCredentials: function(){
+                debugger;
+                var config = {}
+                this.get('permissions', ).then(function(){
+                    debugger;
+                });
+            },
+            setCredentials: function(username, password){
+                encoded = $base64.encode(username + ':' + password);
+            },
+            getAuthorization: function(){
+                return 'Basic ' + encoded;
+            },
+            clearCredentials: function () {
+                encoded = undefined;
+            },
+            parseXML: function(data){
+                return parseXml(data);
+            },
+            get: function(method, config){
+                var deferred = $q.defer();
+                var self = this;
+
+                $http.get(API + method, config).then(function(data){
+                    deferred.resolve(self.parseXML(data.data));
+                },function(data) {
+                    deferred.reject(data);
+                });
+                return deferred.promise;
+            },
+            overpass: function(query){
+                var url = 'http://overpass-api.de/api/interpreter';
+                var deferred = $q.defer();
+                var self = this;
+                var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
+                console.log('overpass query start');
+                $http.post(url, query, {headers: headers}).then(function(data){
+                    console.log('overpass query succeed');
+                    deferred.resolve(self.parseXML(data.data));
+                },function(data) {
+                    console.log('overpass query failed');
+                    deferred.reject(data);
+                });
+                return deferred.promise;
+            },
+            getNodesInJSON: function(xmlNodes){
+                var nodesHTML = xmlNodes.documentElement.getElementsByTagName('node');
+                var nodes = [];
+                var node, tags, tag, i, j;
+                for (i = 0; i < nodesHTML.length; i++) {
+                    node = {
+                        type: 'Feature',
+                        properties: {id: nodesHTML[i].id},
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [
+                                parseFloat(nodesHTML[i].getAttribute('lon')),
+                                parseFloat(nodesHTML[i].getAttribute('lat'))
+                            ]
+                        }
+                    };
+                    tags = nodesHTML[i].getElementsByTagName('tag');
+                    for (j = 0; j < tags.length; j++) {
+                        tag = tags[j];
+                        node.properties[tag.getAttribute('k')] = tag.getAttribute('v');
+                    }
+                    nodes.push(node);
+                }
+                return nodes;
+            }
+        };
+    }
+]);
+
+/*jshint strict:false */
+/*global angular:false */
+/*global L:false */
 angular.module('myApp').config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/', {
         controller: 'OpendataController',
-        templateUrl: 'partials/opendata.html'
+        templateUrl: 'partials/osmfusion.html'
     });
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
     ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData',
     function($scope, $http, $timeout, messagesService, osmService, leafletData){
-        $scope.previousConfiguration = {};
+
+        //configuration
+        $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
+        $scope.markers = {
+            Localisation: {
+                id: undefined,
+                lat: 47.2383,
+                lng: -1.5603,
+                message: 'Déplacer ce marker sur la localisation souhaitée.',
+                focus: true,
+                draggable: true
+            }
+        };
+        $scope.nodes = [];
+        $scope.password = '';
+
+        //those configuration that should be stored in localstorage
+        $scope.geojsonURI = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
+        $scope.featureName = 'properties.geo.name';
+        $scope.featureID = 'properties._IDOBJ';
+        $scope.username = '';
+        $scope.overpassquery = '[amenity=library]';
+        $scope.osmtags = {
+            amenity: "'library'",
+            'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
+            phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
+            postal_code: 'currentFeature.properties.CODE_POSTAL',
+            name: 'currentFeature.properties.geo.name'
+        };
+
+
+
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
         };
@@ -342,17 +476,6 @@ angular.module('myApp.controllers').controller(
                 }
             }
         };
-        $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
-        $scope.markers = {
-            Localisation: {
-                id: undefined,
-                lat: 47.2383,
-                lng: -1.5603,
-                message: 'Déplacer ce marker sur la localisation souhaitée.',
-                focus: true,
-                draggable: true
-            }
-        };
         $scope.getFeatureID = function(feature){
             if (!feature){
                 return;
@@ -370,24 +493,19 @@ angular.module('myApp.controllers').controller(
             }
             return name;
         };
-        $scope.hidden = [];
-        $scope.geojson = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
-        $scope.featureName = 'properties.geo.name';
-        $scope.featureID = 'properties._IDOBJ';
-        $scope.featureAddressExp = 'currentFeature.properties.ADR_1';
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
-            if ($scope.geojson.indexOf('http') === 0){
+            if ($scope.geojsonURI.indexOf('http') === 0){
                 config = {
                     params: {
-                        q: "select * from json where url='" + $scope.geojson + "';",
+                        q: "select * from json where url='" + $scope.geojsonURI + "';",
                         format: 'json'
                     }
                 };
                 url = 'http://query.yahooapis.com/v1/public/yql';
             }else{
-                url = $scope.geojson;
+                url = $scope.geojsonURI;
             }
             $http.get(url, config).then(
                 function(data){
@@ -401,12 +519,6 @@ angular.module('myApp.controllers').controller(
                     }else{
                         $scope.features = data.data.features;
                     }
-                    if (!$scope.previousConfiguration[$scope.geojson]){
-                        $scope.previousConfiguration[$scope.geojson] = {url: $scope.geojson};
-                    }
-                    $scope.previousConfiguration[$scope.geojson].featureID = $scope.featureID;
-                    $scope.previousConfiguration[$scope.geojson].featureName = $scope.featureName;
-                    $scope.previousConfiguration[$scope.geojson].featureAddressExp = $scope.featureAddressExp;
                     $scope.setLoadingStatus('geojson' , 'success', 3000);
                 }, function(){
                     $scope.loading.geojson = undefined;
@@ -414,32 +526,17 @@ angular.module('myApp.controllers').controller(
                 });
         };
         $scope.setLoadingStatus = function(item, status, delay){
-            console.log('set');
             $scope.loading[item + status] = true;
             $timeout(function(){
                 console.log('reset');
                 $scope.loading[item + status] = undefined;
             }, 3000);
         };
-        $scope.shouldDisplay = function(key, value){
-            if (value === undefined || value === null || value === ''){
-                return false;
-            }
-            for (var i = 0; i < $scope.hidden.length; i++) {
-                if (key === $scope.hidden[i]){
-                    return false;
-                }
-            }
-            return true;
-        };
-        $scope.hide = function(key){
-            $scope.hidden.push(key);
-        };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
-                $scope.markers.Localisation.lng = feature.geometry.coordinates[0];
-                $scope.markers.Localisation.lat = feature.geometry.coordinates[1];
+                $scope.markers.Localisation.lng = parseFloat(feature.geometry.coordinates[0]);
+                $scope.markers.Localisation.lat = parseFloat(feature.geometry.coordinates[1]);
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
                 map.setView(
                     L.latLng(
@@ -474,25 +571,15 @@ angular.module('myApp.controllers').controller(
             $scope.reloadFeatures();
         });
 
-        $scope.username = '';
-        $scope.password = '';
-        $scope.overpassquery = '[amenity=library]';
-        $scope.nodes = [];
-/*        $scope.login = function(){
-            $scope.Authorization = osmService.getAuthorization($scope.username, $scope.password);
-            osmService.get('/api/capabilities').then(function(capabilities){
+        $scope.login = function(){
+            debugger;
+            osmService.setCredentials($scope.username, $scope.password);
+            osmService.get('/capabilities').then(function(capabilities){
                 $scope.capabilities = capabilities;
             });
         };
         $scope.logout = function(){
             osmService.clearCredentials();
-        };*/
-        $scope.osmtags = {
-            amenity: "'library'",
-            'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-            phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
-            postal_code: 'currentFeature.properties.CODE_POSTAL',
-            name: 'currentFeature.properties.geo.name'
         };
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
@@ -536,110 +623,6 @@ angular.module('myApp.controllers').controller(
 
     }]
 );
-/*jshint strict:false */
-/*global angular:false */
-angular.module('myApp.services').factory('osmService',
-    ['$base64', '$cookieStore', '$http', '$q',
-    function ($base64, $cookieStore, $http, $q) {
-        var API = 'http://api.openstreetmap.org';
-        // initialize to whatever is in the cookie, if anything
-        //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
-        var parseXml;
-
-        if (typeof window.DOMParser !== 'undefined') {
-            parseXml = function(xmlStr) {
-                return ( new window.DOMParser() ).parseFromString(xmlStr, 'text/xml');
-            };
-        } else if (typeof window.ActiveXObject !== 'undefined' &&
-               new window.ActiveXObject('Microsoft.XMLDOM')) {
-            parseXml = function(xmlStr) {
-                var xmlDoc = new window.ActiveXObject('Microsoft.XMLDOM');
-                xmlDoc.async = 'false';
-                xmlDoc.loadXML(xmlStr);
-                return xmlDoc;
-            };
-        } else {
-            throw new Error('No XML parser found');
-        }
-
-        return {
-/*
-            setCredentials: function (username, password) {
-                console.log('setCrendentials');
-                var encoded = $base64.encode(username + ':' + password);
-                $http.defaults.headers.common.Authorization = 'Basic ' + encoded;
-                $cookieStore.put('authdata', encoded);
-            },
-            getAuthorization: function(username, password){
-                var encoded = $base64.encode(username + ':' + password);
-                return 'Basic ' + encoded;
-            },
-            clearCredentials: function () {
-                console.log('clear credentials');
-                document.execCommand('ClearAuthenticationCache');
-                $cookieStore.remove('authdata');
-                delete $http.defaults.headers.common.Authorization;
-            },
-            */
-            parseXML: function(data){
-                return parseXml(data);
-            },
-            get: function(method, config){
-                var deferred = $q.defer();
-                var self = this;
-
-                $http.get(API + method, config).then(function(data){
-                    deferred.resolve(self.parseXML(data.data));
-                },function(data) {
-                    deferred.reject(data);
-                });
-                return deferred.promise;
-            },
-            overpass: function(query){
-                var url = 'http://overpass-api.de/api/interpreter';
-                var deferred = $q.defer();
-                var self = this;
-                var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-                var data = {data:query};
-                console.log('overpass query start');
-                $http.post(url, query, {headers: headers}).then(function(data){
-                    console.log('overpass query succeed');
-                    deferred.resolve(self.parseXML(data.data));
-                },function(data) {
-                    console.log('overpass query failed');
-                    deferred.reject(data);
-                });
-                return deferred.promise;
-            },
-            getNodesInJSON: function(xmlNodes){
-                var nodesHTML = xmlNodes.documentElement.getElementsByTagName('node');
-                var nodes = [];
-                var node, tags, tag, i, j;
-                for (i = 0; i < nodesHTML.length; i++) {
-                    node = {
-                        type: 'Feature',
-                        properties: {id: nodesHTML[i].id},
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [
-                                parseFloat(nodesHTML[i].getAttribute('lon')),
-                                parseFloat(nodesHTML[i].getAttribute('lat'))
-                            ]
-                        }
-                    };
-                    tags = nodesHTML[i].getElementsByTagName('tag');
-                    for (j = 0; j < tags.length; j++) {
-                        tag = tags[j];
-                        node.properties[tag.getAttribute('k')] = tag.getAttribute('v');
-                    }
-                    nodes.push(node);
-                }
-                return nodes;
-            }
-        };
-    }
-]);
-
 angular.module("gettext").run(['$http', 'gettextCatalog',
 	function ($http, gettextCatalog) {
 	$http.get('translations/fr.json').then(function(translations){
