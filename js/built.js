@@ -321,7 +321,7 @@ angular.module('myApp.services').factory('osmService',
             validateCredentials: function(){
                 debugger;
                 var config = {}
-                this.get('permissions', ).then(function(){
+                this.get('permissions' ).then(function(){
                     debugger;
                 });
             },
