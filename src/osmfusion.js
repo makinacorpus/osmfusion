@@ -1,5 +1,6 @@
 /*jshint strict:false */
 /*global angular:false */
+/*global L:false */
 angular.module('myApp').config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/', {
         controller: 'OpendataController',
@@ -27,10 +28,10 @@ angular.module('myApp.controllers').controller(
         $scope.password = '';
 
         //those configuration that should be stored in localstorage
-        $scope.geojson = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
+        $scope.geojsonURI = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
         $scope.featureName = 'properties.geo.name';
         $scope.featureID = 'properties._IDOBJ';
-        $scope.username = '';
+        $scope.username = 'toutpt';
         $scope.overpassquery = '[amenity=library]';
         $scope.osmtags = {
             amenity: "'library'",
@@ -101,16 +102,16 @@ angular.module('myApp.controllers').controller(
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
-            if ($scope.geojson.indexOf('http') === 0){
+            if ($scope.geojsonURI.indexOf('http') === 0){
                 config = {
                     params: {
-                        q: "select * from json where url='" + $scope.geojson + "';",
+                        q: "select * from json where url='" + $scope.geojsonURI + "';",
                         format: 'json'
                     }
                 };
                 url = 'http://query.yahooapis.com/v1/public/yql';
             }else{
-                url = $scope.geojson;
+                url = $scope.geojsonURI;
             }
             $http.get(url, config).then(
                 function(data){
@@ -124,7 +125,7 @@ angular.module('myApp.controllers').controller(
                     }else{
                         $scope.features = data.data.features;
                     }
-                    $scope.setLoadingStatus('geojson' , 'success', 3000);
+                    $scope.setLoadingStatus('geojson' , 'success');
                 }, function(){
                     $scope.loading.geojson = undefined;
                     $scope.setLoadingStatus('geojson', 'error');
@@ -140,8 +141,8 @@ angular.module('myApp.controllers').controller(
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
-                $scope.markers.Localisation.lng = feature.geometry.coordinates[0];
-                $scope.markers.Localisation.lat = feature.geometry.coordinates[1];
+                $scope.markers.Localisation.lng = parseFloat(feature.geometry.coordinates[0]);
+                $scope.markers.Localisation.lat = parseFloat(feature.geometry.coordinates[1]);
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
                 map.setView(
                     L.latLng(
@@ -176,15 +177,21 @@ angular.module('myApp.controllers').controller(
             $scope.reloadFeatures();
         });
 
-/*        $scope.login = function(){
-            $scope.Authorization = osmService.getAuthorization($scope.username, $scope.password);
-            osmService.get('/api/capabilities').then(function(capabilities){
-                $scope.capabilities = capabilities;
+        $scope.login = function(){
+            osmService.setCredentials($scope.username, $scope.password);
+            osmService.validateCredentials().then(function(loggedin){
+                $scope.loggedin = loggedin;
+                if (!loggedin){
+                    messagesService.addError('login failed');
+                }else{
+                    messagesService.addInfo('login success', 2000);
+                }
             });
         };
         $scope.logout = function(){
             osmService.clearCredentials();
-        };*/
+            $scope.loggedin = false;
+        };
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);

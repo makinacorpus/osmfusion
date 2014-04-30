@@ -3,10 +3,11 @@
 angular.module('myApp.services').factory('osmService',
     ['$base64', '$cookieStore', '$http', '$q',
     function ($base64, $cookieStore, $http, $q) {
-        var API = 'http://api.openstreetmap.org';
+        var API = 'http://api.openstreetmap.org/api';
         // initialize to whatever is in the cookie, if anything
         //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
         var parseXml;
+        var encoded;
 
         if (typeof window.DOMParser !== 'undefined') {
             parseXml = function(xmlStr) {
@@ -25,26 +26,32 @@ angular.module('myApp.services').factory('osmService',
         }
 
         return {
-/*
-            setCredentials: function (username, password) {
-                console.log('setCrendentials');
-                var encoded = $base64.encode(username + ':' + password);
-                $http.defaults.headers.common.Authorization = 'Basic ' + encoded;
-                $cookieStore.put('authdata', encoded);
+            validateCredentials: function(){
+                var deferred = $q.defer();
+                var self = this;
+                self.getAuthenticated('/0.6/permissions').then(function(data){
+                    deferred.resolve(data.getElementsByTagName('permission').length > 0);
+                });
+                return deferred.promise;
             },
-            getAuthorization: function(username, password){
-                var encoded = $base64.encode(username + ':' + password);
+            setCredentials: function(username, password){
+                encoded = $base64.encode(username + ':' + password);
+            },
+            getAuthorization: function(){
                 return 'Basic ' + encoded;
             },
             clearCredentials: function () {
-                console.log('clear credentials');
-                document.execCommand('ClearAuthenticationCache');
-                $cookieStore.remove('authdata');
-                delete $http.defaults.headers.common.Authorization;
+                encoded = undefined;
             },
-            */
             parseXML: function(data){
                 return parseXml(data);
+            },
+            getAuthenticated: function(method, config){
+                if (config === undefined){
+                    config = {};
+                }
+                config.headers = {Authorization: this.getAuthorization()};
+                return this.get(method, config);
             },
             get: function(method, config){
                 var deferred = $q.defer();
@@ -62,7 +69,6 @@ angular.module('myApp.services').factory('osmService',
                 var deferred = $q.defer();
                 var self = this;
                 var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-                var data = {data:query};
                 console.log('overpass query start');
                 $http.post(url, query, {headers: headers}).then(function(data){
                     console.log('overpass query succeed');
