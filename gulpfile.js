@@ -14,7 +14,7 @@ gulp.task('copy', function() {
   gulp.src(['bower_components/font-awesome/fonts/*'])
     .pipe(gulp.dest('static/fonts'));
   gulp.src(['bower_components/leaflet-dist/images/*'])
-    .pipe(gulp.dest('static/css/images'));
+    .pipe(gulp.dest('static/images'));
 });
 gulp.task('scripts-libs', function() {
   gulp.src([
