@@ -3,14 +3,45 @@
 angular.module('myApp').config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/', {
         controller: 'OpendataController',
-        templateUrl: 'partials/opendata.html'
+        templateUrl: 'partials/osmfusion.html'
     });
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
     ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData',
     function($scope, $http, $timeout, messagesService, osmService, leafletData){
-        $scope.previousConfiguration = {};
+
+        //configuration
+        $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
+        $scope.markers = {
+            Localisation: {
+                id: undefined,
+                lat: 47.2383,
+                lng: -1.5603,
+                message: 'Déplacer ce marker sur la localisation souhaitée.',
+                focus: true,
+                draggable: true
+            }
+        };
+        $scope.nodes = [];
+        $scope.password = '';
+
+        //those configuration that should be stored in localstorage
+        $scope.geojson = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
+        $scope.featureName = 'properties.geo.name';
+        $scope.featureID = 'properties._IDOBJ';
+        $scope.username = '';
+        $scope.overpassquery = '[amenity=library]';
+        $scope.osmtags = {
+            amenity: "'library'",
+            'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
+            phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
+            postal_code: 'currentFeature.properties.CODE_POSTAL',
+            name: 'currentFeature.properties.geo.name'
+        };
+
+
+
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
         };
@@ -50,17 +81,6 @@ angular.module('myApp.controllers').controller(
                 }
             }
         };
-        $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
-        $scope.markers = {
-            Localisation: {
-                id: undefined,
-                lat: 47.2383,
-                lng: -1.5603,
-                message: 'Déplacer ce marker sur la localisation souhaitée.',
-                focus: true,
-                draggable: true
-            }
-        };
         $scope.getFeatureID = function(feature){
             if (!feature){
                 return;
@@ -78,11 +98,6 @@ angular.module('myApp.controllers').controller(
             }
             return name;
         };
-        $scope.hidden = [];
-        $scope.geojson = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
-        $scope.featureName = 'properties.geo.name';
-        $scope.featureID = 'properties._IDOBJ';
-        $scope.featureAddressExp = 'currentFeature.properties.ADR_1';
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
@@ -109,12 +124,6 @@ angular.module('myApp.controllers').controller(
                     }else{
                         $scope.features = data.data.features;
                     }
-                    if (!$scope.previousConfiguration[$scope.geojson]){
-                        $scope.previousConfiguration[$scope.geojson] = {url: $scope.geojson};
-                    }
-                    $scope.previousConfiguration[$scope.geojson].featureID = $scope.featureID;
-                    $scope.previousConfiguration[$scope.geojson].featureName = $scope.featureName;
-                    $scope.previousConfiguration[$scope.geojson].featureAddressExp = $scope.featureAddressExp;
                     $scope.setLoadingStatus('geojson' , 'success', 3000);
                 }, function(){
                     $scope.loading.geojson = undefined;
@@ -122,26 +131,11 @@ angular.module('myApp.controllers').controller(
                 });
         };
         $scope.setLoadingStatus = function(item, status, delay){
-            console.log('set');
             $scope.loading[item + status] = true;
             $timeout(function(){
                 console.log('reset');
                 $scope.loading[item + status] = undefined;
             }, 3000);
-        };
-        $scope.shouldDisplay = function(key, value){
-            if (value === undefined || value === null || value === ''){
-                return false;
-            }
-            for (var i = 0; i < $scope.hidden.length; i++) {
-                if (key === $scope.hidden[i]){
-                    return false;
-                }
-            }
-            return true;
-        };
-        $scope.hide = function(key){
-            $scope.hidden.push(key);
         };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
@@ -182,10 +176,6 @@ angular.module('myApp.controllers').controller(
             $scope.reloadFeatures();
         });
 
-        $scope.username = '';
-        $scope.password = '';
-        $scope.overpassquery = '[amenity=library]';
-        $scope.nodes = [];
 /*        $scope.login = function(){
             $scope.Authorization = osmService.getAuthorization($scope.username, $scope.password);
             osmService.get('/api/capabilities').then(function(capabilities){
@@ -195,13 +185,6 @@ angular.module('myApp.controllers').controller(
         $scope.logout = function(){
             osmService.clearCredentials();
         };*/
-        $scope.osmtags = {
-            amenity: "'library'",
-            'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-            phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
-            postal_code: 'currentFeature.properties.CODE_POSTAL',
-            name: 'currentFeature.properties.geo.name'
-        };
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);
