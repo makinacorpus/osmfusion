@@ -159,26 +159,25 @@ angular.module('myApp.controllers').controller(
                 //purge cache of search
                 $scope.currentNode = undefined;
                 $scope.nodes = [];
-
-                $scope.markers.Localisation.lng = parseFloat(feature.geometry.coordinates[0]);
-                $scope.markers.Localisation.lat = parseFloat(feature.geometry.coordinates[1]);
+                var lng = parseFloat(feature.geometry.coordinates[0]);
+                var lat = parseFloat(feature.geometry.coordinates[1]);
+                $scope.markers.Localisation.lng = lng;
+                $scope.markers.Localisation.lat = lat;
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
-                map.setView(
-                    L.latLng(
-                        feature.geometry.coordinates[1],
-                        feature.geometry.coordinates[0]
-                    ),
-                    17
-                );
+                map.setView(L.latLng(lat, lng), 17);
                 $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
-                var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
+/*                var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
                 var query = $scope.settings.overpassquery.replace(/\$bbox/g, obox);
                 osmService.overpass(query).then(function(nodes){
                     $scope.nodes = osmService.getNodesInJSON(nodes);
                     if ($scope.nodes.length === 1){
                         $scope.setCurrentNode($scope.nodes[0]);
                     }
+                });*/
+                var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
+                osmService.getMap(bbox).then(function(map){
+                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
