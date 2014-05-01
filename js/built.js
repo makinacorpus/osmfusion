@@ -297,6 +297,7 @@ angular.module('myApp.services').factory('osmService',
     ['$base64', '$cookieStore', '$http', '$q',
     function ($base64, $cookieStore, $http, $q) {
         var API = 'http://api.openstreetmap.org/api';
+//        var API = 'http://api06.dev.openstreetmap.org/api';
         // initialize to whatever is in the cookie, if anything
         //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
         var parseXml;
@@ -359,6 +360,21 @@ angular.module('myApp.services').factory('osmService',
                 });
                 return deferred.promise;
             },
+            put: function(method, content, config){
+                var deferred = $q.defer();
+                var self = this;
+
+                if (config === undefined){
+                    config = {};
+                }
+                config.headers = {Authorization: this.getAuthorization()};
+                $http.put(API + method, content, config).then(function(data){
+                    deferred.resolve(self.parseXML(data.data));
+                },function(data) {
+                    deferred.reject(data);
+                });
+                return deferred.promise;
+            },
             overpass: function(query){
                 var url = 'http://overpass-api.de/api/interpreter';
                 var deferred = $q.defer();
@@ -371,20 +387,28 @@ angular.module('myApp.services').factory('osmService',
                 });
                 return deferred.promise;
             },
-            getNodesInJSON: function(xmlNodes){
+            getNodesInJSON: function(xmlNodes, filter){
                 var nodesHTML = xmlNodes.documentElement.getElementsByTagName('node');
                 var nodes = [];
                 var node, tags, tag, i, j;
                 for (i = 0; i < nodesHTML.length; i++) {
+                    var nlng = parseFloat(nodesHTML[i].getAttribute('lon'));
+                    var nlat = parseFloat(nodesHTML[i].getAttribute('lat'));
+                    if (filter !== undefined){
+                        if (filter.lat !== undefined && filter.lng !== undefined){
+                            var dlat = Math.abs(filter.lat - nlat);
+                            var dlng = Math.abs(filter.lng - nlng);
+                            if (dlat > 0.0005 || dlng > 0.0005){
+                                continue;
+                            }
+                        }
+                    }
                     node = {
                         type: 'Feature',
                         properties: {id: nodesHTML[i].id},
                         geometry: {
                             type: 'Point',
-                            coordinates: [
-                                parseFloat(nodesHTML[i].getAttribute('lon')),
-                                parseFloat(nodesHTML[i].getAttribute('lat'))
-                            ]
+                            coordinates: [nlng, nlat]
                         }
                     };
                     tags = nodesHTML[i].getElementsByTagName('tag');
@@ -392,9 +416,34 @@ angular.module('myApp.services').factory('osmService',
                         tag = tags[j];
                         node.properties[tag.getAttribute('k')] = tag.getAttribute('v');
                     }
+                    if (filter.name){
+                        if (node.properties.name === undefined){
+                            continue;
+                        }
+                    }
+                    if (filter.amenity !== undefined){
+                        if (node.properties.amenity !== filter.amenity){
+                            continue;
+                        }
+                    }
                     nodes.push(node);
                 }
                 return nodes;
+            },
+//OSM API: https://wiki.openstreetmap.org/wiki/API_v0.6
+
+            /*
+            https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2Fchangeset.2Fcreate
+             */
+            createChangeset: function(sourceURI){
+                var changeset = '<osm><changeset><tag k="created_by" v="OSMFusion"/><tag k="comment" v="';
+                changeset += 'Import data from ' + sourceURI + '"/></changeset></osm>';
+                this.put('/0.6/changeset/create', changeset).then(function(data){
+                    debugger;
+                });
+            },
+            getMap: function(bbox){
+                return this.get('/0.6/map?bbox='+bbox);
             }
         };
     }
@@ -561,26 +610,25 @@ angular.module('myApp.controllers').controller(
                 //purge cache of search
                 $scope.currentNode = undefined;
                 $scope.nodes = [];
-
-                $scope.markers.Localisation.lng = parseFloat(feature.geometry.coordinates[0]);
-                $scope.markers.Localisation.lat = parseFloat(feature.geometry.coordinates[1]);
+                var lng = parseFloat(feature.geometry.coordinates[0]);
+                var lat = parseFloat(feature.geometry.coordinates[1]);
+                $scope.markers.Localisation.lng = lng;
+                $scope.markers.Localisation.lat = lat;
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
-                map.setView(
-                    L.latLng(
-                        feature.geometry.coordinates[1],
-                        feature.geometry.coordinates[0]
-                    ),
-                    17
-                );
+                map.setView(L.latLng(lat, lng), 17);
                 $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
-                var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
+/*                var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
                 var query = $scope.settings.overpassquery.replace(/\$bbox/g, obox);
                 osmService.overpass(query).then(function(nodes){
                     $scope.nodes = osmService.getNodesInJSON(nodes);
                     if ($scope.nodes.length === 1){
                         $scope.setCurrentNode($scope.nodes[0]);
                     }
+                });*/
+                var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
+                osmService.getMap(bbox).then(function(map){
+                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
