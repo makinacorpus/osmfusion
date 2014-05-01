@@ -15,7 +15,8 @@ angular.module('myApp', [
     'gettext',
     'ui.keypress',
     'base64',
-    'ngCookies'
+    'ngCookies',
+    'ngStorage'
 ]);
 
 angular.module('myApp.controllers', []);

@@ -32,7 +32,8 @@
     "font-awesome": "~4.0.3",
     "angular-gettext": "~0.2.6",
     "angular-ui-utils": "bower-keypress",
-    "angular-base64": "~2.0.1"
+    "angular-base64": "~2.0.1",
+    "ngstorage": "~0.3.0"
   },
   "resolutions": {
     "angular": "1.2.15",

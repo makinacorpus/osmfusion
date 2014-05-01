@@ -36,12 +36,14 @@ angular.module('myApp.services').factory('osmService',
             },
             setCredentials: function(username, password){
                 encoded = $base64.encode(username + ':' + password);
+                console.log('set ' + encoded + ' ' + password);
             },
             getAuthorization: function(){
+                console.log('get ' + encoded);
                 return 'Basic ' + encoded;
             },
             clearCredentials: function () {
-                encoded = undefined;
+                encoded = 'undefined';
             },
             parseXML: function(data){
                 return parseXml(data);
@@ -69,12 +71,9 @@ angular.module('myApp.services').factory('osmService',
                 var deferred = $q.defer();
                 var self = this;
                 var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-                console.log('overpass query start');
                 $http.post(url, query, {headers: headers}).then(function(data){
-                    console.log('overpass query succeed');
                     deferred.resolve(self.parseXML(data.data));
                 },function(data) {
-                    console.log('overpass query failed');
                     deferred.reject(data);
                 });
                 return deferred.promise;

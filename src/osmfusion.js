@@ -9,8 +9,8 @@ angular.module('myApp').config(['$routeProvider', function($routeProvider) {
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
-    ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData',
-    function($scope, $http, $timeout, messagesService, osmService, leafletData){
+    ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData', '$localStorage',
+    function($scope, $http, $timeout, messagesService, osmService, leafletData, $localStorage){
 
         //configuration
         $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
@@ -25,24 +25,40 @@ angular.module('myApp.controllers').controller(
             }
         };
         $scope.nodes = [];
-        $scope.password = '';
+        $scope.mypassword = '';
 
-        //those configuration that should be stored in localstorage
-        $scope.geojsonURI = 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json';
-        $scope.featureName = 'properties.geo.name';
-        $scope.featureID = 'properties._IDOBJ';
-        $scope.username = 'toutpt';
-        $scope.overpassquery = '[amenity=library]';
-        $scope.osmtags = {
-            amenity: "'library'",
-            'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-            phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
-            postal_code: 'currentFeature.properties.CODE_POSTAL',
-            name: 'currentFeature.properties.geo.name'
+        //those configuration that should be stored in localStorage
+        $scope.changeset = {
+            created_by: 'OSMFusion',
+            comment: ''
         };
 
-
-
+        $scope.settings = $localStorage.$default({
+            geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
+            featureName: 'properties.geo.name',
+            featureID: 'properties._IDOBJ',
+            username: '',
+            overpassquery: '(\
+              node\
+                ["amenity"="library"]\
+                ($bbox);\
+              way\
+                ["amenity"="library"]\
+                ($bbox);\
+              rel\
+                ["amenity"="library"]\
+                ($bbox);\
+            );\
+            (._;>;);\
+            out;',
+            osmtags: {
+                amenity: "'library'",
+                'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
+                phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
+                postal_code: 'currentFeature.properties.CODE_POSTAL',
+                name: 'currentFeature.properties.geo.name'
+            }
+        });
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
         };
@@ -86,13 +102,13 @@ angular.module('myApp.controllers').controller(
             if (!feature){
                 return;
             }
-            return $scope.traverse(feature, $scope.featureID);
+            return $scope.traverse(feature, $scope.settings.featureID);
         };
         $scope.getFeatureName = function(feature){
             if (!feature){
                 return;
             }
-            var name = $scope.traverse(feature, $scope.featureName);
+            var name = $scope.traverse(feature, $scope.settings.featureName);
             if (!name){
                 //try OSM:
                 return feature.properties.name;
@@ -102,16 +118,16 @@ angular.module('myApp.controllers').controller(
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
-            if ($scope.geojsonURI.indexOf('http') === 0){
+            if ($scope.settings.geojsonURI.indexOf('http') === 0){
                 config = {
                     params: {
-                        q: "select * from json where url='" + $scope.geojsonURI + "';",
+                        q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
                         format: 'json'
                     }
                 };
                 url = 'http://query.yahooapis.com/v1/public/yql';
             }else{
-                url = $scope.geojsonURI;
+                url = $scope.settings.geojsonURI;
             }
             $http.get(url, config).then(
                 function(data){
@@ -134,13 +150,16 @@ angular.module('myApp.controllers').controller(
         $scope.setLoadingStatus = function(item, status, delay){
             $scope.loading[item + status] = true;
             $timeout(function(){
-                console.log('reset');
                 $scope.loading[item + status] = undefined;
             }, 3000);
         };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
+                //purge cache of search
+                $scope.currentNode = undefined;
+                $scope.nodes = [];
+
                 $scope.markers.Localisation.lng = parseFloat(feature.geometry.coordinates[0]);
                 $scope.markers.Localisation.lat = parseFloat(feature.geometry.coordinates[1]);
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
@@ -154,8 +173,7 @@ angular.module('myApp.controllers').controller(
                 $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
                 var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
-                var query = 'node('+ obox+')' + $scope.overpassquery + ';out;';
-
+                var query = $scope.settings.overpassquery.replace(/\$bbox/g, obox);
                 osmService.overpass(query).then(function(nodes){
                     $scope.nodes = osmService.getNodesInJSON(nodes);
                     if ($scope.nodes.length === 1){
@@ -163,22 +181,23 @@ angular.module('myApp.controllers').controller(
                     }
                 });
                 $scope.currentFeature.osm = {};
-                for (var property in $scope.osmtags) {
-                    if ($scope.osmtags.hasOwnProperty(property)) {
+                for (var property in $scope.settings.osmtags) {
+                    if ($scope.settings.osmtags.hasOwnProperty(property)) {
                         $scope.currentFeature.osm[property] = $scope.getCurrentNodeValueFromFeature(property);
                     }
                 }
             });
         };
-        $scope.$watch('geojson', function(){
-            $scope.reloadFeatures();
-        });
-        $scope.$watch('featureID', function(){
-            $scope.reloadFeatures();
-        });
-
+        $scope.$watch('settings', function(newValue, oldValue){
+            if (newValue.geojsonURI !== oldValue.geojsonURI){
+                $scope.reloadFeatures();
+            }
+            if (newValue.featureID !== oldValue.featureID){
+                $scope.reloadFeatures();
+            }
+        }, true);
         $scope.login = function(){
-            osmService.setCredentials($scope.username, $scope.password);
+            osmService.setCredentials($scope.username, $scope.mypassword);
             osmService.validateCredentials().then(function(loggedin){
                 $scope.loggedin = loggedin;
                 if (!loggedin){
@@ -195,24 +214,24 @@ angular.module('myApp.controllers').controller(
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);
-            for (var property in $scope.osmtags) {
-                if ($scope.osmtags.hasOwnProperty(property)) {
+            for (var property in $scope.settings.osmtags) {
+                if ($scope.settings.osmtags.hasOwnProperty(property)) {
                     $scope.updatedNode.properties[property] = $scope.getCurrentNodeValueFromFeature(property);
                 }
             }
         };
         $scope.addOSMTag = function(){
-            $scope.osmtags[$scope.newOSMKey] = $scope.newOSMValueExpr;
+            $scope.settings.osmtags[$scope.newOSMKey] = $scope.newOSMValueExpr;
             $scope.newOSMKey = '';
             $scope.newOSMValueExpr = '';
         };
         $scope.getCurrentNodeValueFromFeature = function(key){
-            if ($scope.osmtags[key] !== undefined){
-                return $scope.$eval($scope.osmtags[key]);
+            if ($scope.settings.osmtags[key] !== undefined){
+                return $scope.$eval($scope.settings.osmtags[key]);
             }
         };
         $scope.deleteOSMTag = function(index){
-            delete $scope.osmtags[index];
+            delete $scope.settings.osmtags[index];
         };
         $scope.getTableRowClass = function(key, value){
             if (key === 'id'){
@@ -231,6 +250,6 @@ angular.module('myApp.controllers').controller(
                 return 'warning';
             }
         };
-
+        $scope.reloadFeatures();
     }]
 );
