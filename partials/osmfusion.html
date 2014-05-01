@@ -145,15 +145,21 @@
 
 <div class="panel panel-default">
   <div class="panel-body">
-      <div ng-if="currentFeature">
-        <h2>Found features from OSM</h2>
-        <p class="help-block">Please select one if you want to update it or check it's values</p>
-        <div class="list-group">
-          <a class="list-group-item"
-             ng-repeat="node in nodes"
-             ng-class="{'active': currentNode.properties.id === node.properties.id}"
-             ng-click="setCurrentNode(node)">
-              [{{node.properties.id}}] {{node.properties.name}}</a>
+      <div ng-show="currentFeature">
+        <h2 ng-show="loading.osmfeatures">
+          <i class="fa fa-refresh fa-spin"></i>
+          Loading osm features
+        </h2>
+        <div ng-show="!loading.osmfeatures">
+          <h2>Found features from OSM</h2>
+          <p class="help-block">Please select one if you want to update it or check it's values</p>
+          <div class="list-group">
+            <a class="list-group-item"
+               ng-repeat="node in nodes"
+               ng-class="{'active': currentNode.properties.id === node.properties.id}"
+               ng-click="setCurrentNode(node)">
+                [{{node.properties.id}}] {{node.properties.name}}</a>
+          </div>
         </div>
       </div>
 

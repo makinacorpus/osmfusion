@@ -626,9 +626,14 @@ angular.module('myApp.controllers').controller(
                         $scope.setCurrentNode($scope.nodes[0]);
                     }
                 });*/
+                $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(map){
                     $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
+                    if ($scope.nodes.length === 1){
+                        $scope.setCurrentNode($scope.nodes[0]);
+                    }
+                    $scope.loading.osmfeatures = false;
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
