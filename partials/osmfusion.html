@@ -5,20 +5,27 @@
   <div class="col-md-4">
 
     <div ng-include="'./partials/messages.html'"></div>
-    <div class="panel panel-default">
+    <div class="panel" ng-class="{'panel-success': loggedin, 'panel-default': !loggedin}">
       <div class="panel-heading" translate>OSM Login</div>
       <div class="panel-body">
         <div class="form-group">
-          <input type="text" name="username" class="form-control" ng-model="username" placeholder="username"/>
+          <input type="text" name="username" class="form-control" ng-model="settings.username" placeholder="username"/>
         </div>
-        <div class="form-group">
-          <input type="password" name="password" class="form-control" ng-model="password" placeholder="password"/>
+        <div class="form-group" ng-hide="loggedin">
+          <input type="password" name="password" class="form-control" ng-model="mypassword"/>
+          <button class="form-control btn btn-primary" ng-click="login()">Login</button>
+         </div>
+        <div ng-show="loggedin">
+          <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
+          <div class="form-group">
+            <label>Changeset comment</label>
+            <textarea class="form-control" ng-model="changeset.comment"></textarea>
+          </div>
         </div>
-        <button class="btn btn-primary" ng-click="login()">Login</button>
       </div>
     </div>
 
-    <div class="panel panel-default">
+    <div class="panel" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
       <div class="panel-heading" translate>Source Features</div>
       <div class="panel-body">
       <div class="input-group margin-bottom-sm">
@@ -38,12 +45,12 @@
 
   <div class="col-md-8">
     <div class="form-group">
-      <div class="input-group margin-bottom-sm">
-        <input type="text" class="form-control" ng-model="geojsonURI"/>
+      <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadFeatures()'}">
+        <input type="text" class="form-control" ng-model="settings.geojsonURI"/>
         <span class="input-group-addon">
-          <i class="fa fa-refresh fa-spin" ng-if="loading.geojson"></i>
-          <i class="fa fa-check fa-fw text-success" ng-if="loading.geojsonsuccess"></i>
-          <i class="fa fa-times fa-fw text-danger" ng-if="loading.geojsonerror"></i>
+          <i class="fa fa-refresh fa-spin" ng-show="loading.geojson"></i>
+          <i class="fa fa-check fa-fw text-success" ng-show="loading.geojsonsuccess"></i>
+          <i class="fa fa-times fa-fw text-danger" ng-show="loading.geojsonerror"></i>
         </span>
       </div>
 
@@ -55,14 +62,14 @@
           <tr>
             <td>Feature ID</td>
             <td>
-              <input type="text" class="form-control" ng-model="featureID"/>
+              <input type="text" class="form-control" ng-model="settings.featureID"/>
             </td>
             <td>{{getFeatureID(currentFeature)}}</td>
           </tr>
           <tr>
             <td>Feature name</td>
             <td>
-              <input type="text" class="form-control" ng-model="featureName"/>
+              <input type="text" class="form-control" ng-model="settings.featureName"/>
             </td>
             <td>{{getFeatureName(currentFeature)}}</td>
           </tr>
@@ -73,7 +80,7 @@
 
         <p class="help-block">To load existing features from OSM we use the overpass API. You have to provide a query here that will return them automaticly each time you choose a feature from Opendata. To learn more about overpass api query language read the following <a href="http://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide">Query language guide</a></p>
         <div class="form-group">
-          <input type="text" name="overpassquery" class="form-control" ng-model="overpassquery" placeholder="Overpass API query"/>
+          <textarea name="overpassquery" class="form-control" ng-model="settings.overpassquery"></textarea>
         </div>
   </div>
 </div>
@@ -83,7 +90,7 @@
 
         <p>You can write angular expression to fill the value that will be used to insert / update OSM database. For more information about angular expression please read the following <a href="https://docs.angularjs.org/guide/expression">Angular Expressions</a></p>
         <table class="table table-condensed">
-          <tr ng-repeat="(key, value) in osmtags track by $index">
+          <tr ng-repeat="(key, value) in settings.osmtags track by $index">
             <td width="20px">
               <button class="btn btn-danger" ng-click="deleteOSMTag(key)"><i class="fa fa-times-circle-o"></i></button>
             </td>
@@ -91,7 +98,7 @@
               {{key}}
             </td>
             <td>
-              <input class="form-control" type="text" ng-model="osmtags[key]"/>
+              <input class="form-control" type="text" ng-model="settings.osmtags[key]"/>
             </td>
           </tr>
           <tr>
@@ -107,7 +114,8 @@
         <button class="btn btn-default" ng-click="addOSMTag()">Add tag</button>
   </div>
 </div>
-<div class="panel panel-default">
+<div class="panel panel-default" ng-show="currentFeature">
+  <div class="panel-heading">Current feature Key/Value</div>
   <div class="panel-body">
         <table class="table table-condensed">
           <tr ng-repeat="(key, value) in currentFeature.properties">
@@ -149,7 +157,7 @@
         </div>
       </div>
 
-        <div ng-if="currentNode">
+        <div ng-show="currentNode">
           <table class="table table-condensed">
             <tr>
               <th>Tag</th>
