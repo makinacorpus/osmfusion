@@ -5,7 +5,10 @@
   <div class="col-md-4">
 
     <div ng-include="'./partials/messages.html'"></div>
-    <div class="panel" ng-class="{'panel-success': loggedin, 'panel-default': !loggedin}">
+    <div class="panel" ng-show="loggedin">
+      <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
+    </div>
+    <div class="panel panel-default" ng-show="!loggedin">
       <div class="panel-heading" translate>OSM Login</div>
       <div class="panel-body">
         <div class="form-group">
@@ -15,17 +18,37 @@
           <input type="password" name="password" class="form-control" ng-model="mypassword"/>
           <button class="form-control btn btn-primary" ng-click="login()">Login</button>
          </div>
-        <div ng-show="loggedin">
-          <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
-          <div class="form-group">
-            <label>Changeset comment</label>
-            <textarea class="form-control" ng-model="changeset.comment"></textarea>
-          </div>
-        </div>
+      </div>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading">Changeset</div>
+      <div class="panel-body">
+        <p>The current changeset ID is {{settings.changesetID}}</p>
+
+        <button ng-show="settings.changesetID" class="btn btn-primary btn-lg" ng-click="closeChangeset()" >Save (close changeset)</button>
+
+        <button ng-show="!settings.changesetID "class="btn btn-primary" ng-click="getLastOpenedChangesetId()" >get Changeset</button>
+        <button ng-show="!settings.changesetID" class="btn btn-default" ng-click="createChangeset()" >DEBUG: create change set</button>
+
       </div>
     </div>
 
-    <div class="panel" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
+
+
+
+    <div class="form-group" ng-show="loggedin">
+      <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadFeatures()'}">
+        <input type="text" class="form-control" ng-model="settings.geojsonURI"/>
+        <span class="input-group-addon">
+          <i class="fa fa-refresh fa-spin" ng-show="loading.geojson"></i>
+          <i class="fa fa-check fa-fw text-success" ng-show="loading.geojsonsuccess"></i>
+          <i class="fa fa-times fa-fw text-danger" ng-show="loading.geojsonerror"></i>
+        </span>
+      </div>
+    </div>
+
+
+    <div class="panel" ng-show="loggedin" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
       <div class="panel-heading" translate>Source Features</div>
       <div class="panel-body">
       <div class="input-group margin-bottom-sm">
@@ -43,18 +66,7 @@
     </div>
   </div>
 
-  <div class="col-md-8">
-    <div class="form-group">
-      <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadFeatures()'}">
-        <input type="text" class="form-control" ng-model="settings.geojsonURI"/>
-        <span class="input-group-addon">
-          <i class="fa fa-refresh fa-spin" ng-show="loading.geojson"></i>
-          <i class="fa fa-check fa-fw text-success" ng-show="loading.geojsonsuccess"></i>
-          <i class="fa fa-times fa-fw text-danger" ng-show="loading.geojsonerror"></i>
-        </span>
-      </div>
-
-    </div>
+  <div class="col-md-8" ng-if="loggedin">
     <accordion>
       <accordion-group heading="Configuration" is-open="false">
         <p class="help-block">Configure the way Source features are loaded</p>
@@ -74,16 +86,6 @@
             <td>{{getFeatureName(currentFeature)}}</td>
           </tr>
         </table>
-<div class="panel panel-default">
-  <div class="panel-heading">Target Features</div>
-  <div class="panel-body">
-
-        <p class="help-block">To load existing features from OSM we use the overpass API. You have to provide a query here that will return them automaticly each time you choose a feature from Opendata. To learn more about overpass api query language read the following <a href="http://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide">Query language guide</a></p>
-        <div class="form-group">
-          <textarea name="overpassquery" class="form-control" ng-model="settings.overpassquery"></textarea>
-        </div>
-  </div>
-</div>
 <div class="panel panel-default">
   <div class="panel-heading">OSM Tags Mapping</div>
   <div class="panel-body">
@@ -143,27 +145,23 @@
 
 
 
-<div class="panel panel-default">
+<div class="panel panel-default" ng-show="currentFeature">
+  <div class="panel-heading">Existing features
+    <i ng-show="loading.osmfeatures" class="fa fa-refresh fa-spin"></i>
+  </div>
   <div class="panel-body">
-      <div ng-show="currentFeature">
-        <h2 ng-show="loading.osmfeatures">
-          <i class="fa fa-refresh fa-spin"></i>
-          Loading osm features
-        </h2>
-        <div ng-show="!loading.osmfeatures">
-          <h2>Found features from OSM</h2>
-          <p class="help-block">Please select one if you want to update it or check it's values</p>
-          <div class="list-group">
-            <a class="list-group-item"
-               ng-repeat="node in nodes"
-               ng-class="{'active': currentNode.properties.id === node.properties.id}"
-               ng-click="setCurrentNode(node)">
-                [{{node.properties.id}}] {{node.properties.name}}</a>
-          </div>
-        </div>
+    <div ng-show="loading.osmfeaturessuccess">
+      <h2>Found features from OSM</h2>
+      <p class="help-block">Please select one if you want to update it or check it's values</p>
+      <div class="list-group">
+        <a class="list-group-item"
+           ng-repeat="node in nodes"
+           ng-class="{'active': currentNode.properties.id === node.properties.id}"
+           ng-click="setCurrentNode(node)">
+            [{{node.properties.id}}] {{node.properties.name}}</a>
       </div>
-
-        <div ng-show="currentNode">
+    </div>
+        <div ng-if="currentNode">
           <table class="table table-condensed">
             <tr>
               <th>Tag</th>
@@ -193,7 +191,18 @@
           </table>
 
           <button class="btn btn-primary btn-lg" ng-click="updateOSM()">Update OSM</button>
+          <i ng-show="loading.updateosm" class="fa fa-refresh fa-spin"></i>
+          <i class="fa fa-check fa-fw text-success" ng-show="loading.updateosmsuccess"></i>
+          <i class="fa fa-times fa-fw text-danger" ng-show="loading.updateosmerror"></i>
+
         </div>
+  </div>
+</div>
+<div class="panel panel-default" ng-show="currentFeature && !loading.osmfeatures">
+  <div class="panel-heading">Add a new feature</div>
+  <div class="panel-body">
+
+
         <div ng-if="currentFeature.osm">
           <h2>Current source feature transformed for OSM</h2>
           <p class="help-block">This table sum up the current feature transformed by your configuration, so ready to be added to osm ?</p>
@@ -211,12 +220,14 @@
               </td>
             </tr>
           </table>
-          <button class="btn btn-primary btn-lg" ng-click="addToOSM()" >Add to OSM</button>
+          <button class="btn btn-primary btn-lg" disabled="disabled" ng-click="addToOSM()" >Add to OSM (under dev)</button>
+
+
+
         </div>
 
   </div>
 </div>
-
 
   </div>
 
