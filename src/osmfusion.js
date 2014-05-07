@@ -35,28 +35,17 @@ angular.module('myApp.controllers').controller(
 
         $scope.settings = $localStorage.$default({
             geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
+            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque-osmfusion.json',
             featureName: 'properties.geo.name',
             featureID: 'properties._IDOBJ',
             username: '',
-            overpassquery: '(\
-              node\
-                ["amenity"="library"]\
-                ($bbox);\
-              way\
-                ["amenity"="library"]\
-                ($bbox);\
-              rel\
-                ["amenity"="library"]\
-                ($bbox);\
-            );\
-            (._;>;);\
-            out;',
+            changesetID: '',
             osmtags: {
+                name: 'currentFeature.properties.geo.name',
                 amenity: "'library'",
                 'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-                phone: 'i18nPhone(currentFeature.properties.TELEPHONE)',
-                postal_code: 'currentFeature.properties.CODE_POSTAL',
-                name: 'currentFeature.properties.geo.name'
+                'addr:postcode': 'currentFeature.properties.CODE_POSTAL',
+                phone: 'i18nPhone(currentFeature.properties.TELEPHONE)'
             }
         });
         $scope.capitalize = function(string) {
@@ -74,6 +63,15 @@ angular.module('myApp.controllers').controller(
             geojsonerror: undefined,
             geojsonsuccess: undefined
         };
+        $scope.setLoadingStatus = function(item, status, delay){
+            $scope.loading[item + status] = true;
+            if (delay !== undefined){
+                $timeout(function(){
+                    $scope.loading[item + status] = undefined;
+                }, delay);
+            }
+        };
+
         $scope.traverse = function(obj, path){
             var succeed = true;
             if (typeof path !== 'object'){
@@ -147,12 +145,6 @@ angular.module('myApp.controllers').controller(
                     $scope.setLoadingStatus('geojson', 'error');
                 });
         };
-        $scope.setLoadingStatus = function(item, status, delay){
-            $scope.loading[item + status] = true;
-            $timeout(function(){
-                $scope.loading[item + status] = undefined;
-            }, 3000);
-        };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
@@ -167,18 +159,15 @@ angular.module('myApp.controllers').controller(
                 map.setView(L.latLng(lat, lng), 17);
                 $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
-/*                var obox = '' + b.getSouth() + ',' + b.getWest() + ',' + b.getNorth() + ',' + b.getEast();
-                var query = $scope.settings.overpassquery.replace(/\$bbox/g, obox);
-                osmService.overpass(query).then(function(nodes){
-                    $scope.nodes = osmService.getNodesInJSON(nodes);
-                    if ($scope.nodes.length === 1){
-                        $scope.setCurrentNode($scope.nodes[0]);
-                    }
-                });*/
                 $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(map){
                     $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
+                    if ($scope.nodes.length > 0){
+                        $scope.setLoadingStatus('osmfeatures', 'success');
+                    }else{
+                        $scope.setLoadingStatus('osmfeatures', 'error');
+                    }
                     if ($scope.nodes.length === 1){
                         $scope.setCurrentNode($scope.nodes[0]);
                     }
@@ -201,12 +190,14 @@ angular.module('myApp.controllers').controller(
             }
         }, true);
         $scope.login = function(){
-            osmService.setCredentials($scope.username, $scope.mypassword);
+            osmService.setCredentials($scope.settings.username, $scope.mypassword);
             osmService.validateCredentials().then(function(loggedin){
                 $scope.loggedin = loggedin;
                 if (!loggedin){
                     messagesService.addError('login failed');
                 }else{
+                    //persist credentials
+                    $scope.settings.credentials = osmService.getCredentials();
                     messagesService.addInfo('login success', 2000);
                 }
             });
@@ -215,6 +206,14 @@ angular.module('myApp.controllers').controller(
             osmService.clearCredentials();
             $scope.loggedin = false;
         };
+        if ($scope.settings.credentials && $scope.settings.username){
+            //validate credentials
+            osmService._credentials = $scope.settings.credentials;
+            osmService._login = $scope.settings.username;
+            osmService.validateCredentials().then(function(loggedin){
+                $scope.loggedin = loggedin;
+            });
+        }
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);
@@ -255,5 +254,35 @@ angular.module('myApp.controllers').controller(
             }
         };
         $scope.reloadFeatures();
+
+        $scope.createChangeset = function(){
+            osmService.createChangeset($scope.settings.geojsonURI);
+        };
+        $scope.getLastOpenedChangesetId = function(){
+            osmService.getLastOpenedChangesetId().then(function(data){
+                $scope.settings.changesetID = data;
+            });
+        };
+        if ($scope.settings.changesetID !== ''){
+            osmService._changeset = $scope.settings.changesetID;
+        }
+        $scope.closeChangeset = function(){
+            osmService.closeChangeset().then(
+                function(){
+                    $scope.settings.changesetID = undefined;
+                }
+            );
+
+        };
+        $scope.updateOSM = function(){
+            $scope.loading.updateosm = true;
+            osmService.updateNode($scope.currentNode, $scope.updatedNode).then(
+                function(){
+                    $scope.setLoadingStatus('updateosm', 'success');
+                },function(){
+                    $scope.setLoadingStatus('updateosm', 'error');
+                }
+            );
+        };
     }]
 );
