@@ -197,8 +197,9 @@ angular.module('myApp.services').factory('osmService',
             },
             closeChangeset: function(){
                 var self = this;
+                var results = this.put('/0.6/changeset/'+ self._changeset +'/close');
                 self._changeset = undefined;
-                return this.put('/0.6/changeset/'+ self._changeset +'/close');
+                return results;
             },
             getUserDetails: function(){
                 return this.getAuthenticated('/0.6/user/details');

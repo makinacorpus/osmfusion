@@ -206,14 +206,6 @@ angular.module('myApp.controllers').controller(
             osmService.clearCredentials();
             $scope.loggedin = false;
         };
-        if ($scope.settings.credentials && $scope.settings.username){
-            //validate credentials
-            osmService._credentials = $scope.settings.credentials;
-            osmService._login = $scope.settings.username;
-            osmService.validateCredentials().then(function(loggedin){
-                $scope.loggedin = loggedin;
-            });
-        }
         $scope.setCurrentNode = function(node){
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);
@@ -263,9 +255,6 @@ angular.module('myApp.controllers').controller(
                 $scope.settings.changesetID = data;
             });
         };
-        if ($scope.settings.changesetID !== ''){
-            osmService._changeset = $scope.settings.changesetID;
-        }
         $scope.closeChangeset = function(){
             osmService.closeChangeset().then(
                 function(){
@@ -284,5 +273,18 @@ angular.module('myApp.controllers').controller(
                 }
             );
         };
+        //update services from peristent settings
+        if ($scope.settings.credentials && $scope.settings.username){
+            //validate credentials
+            osmService._credentials = $scope.settings.credentials;
+            osmService._login = $scope.settings.username;
+            osmService.validateCredentials().then(function(loggedin){
+                $scope.loggedin = loggedin;
+                if ($scope.settings.changesetID !== ''){
+                    $scope.getLastOpenedChangesetId();
+                }
+            });
+        }
+
     }]
 );
