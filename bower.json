@@ -33,7 +33,8 @@
     "angular-gettext": "~0.2.6",
     "angular-ui-utils": "bower-keypress",
     "angular-base64": "~2.0.1",
-    "ngstorage": "~0.3.0"
+    "ngstorage": "~0.3.0",
+    "osmtogeojson": "tyrasd/osmtogeojson#~2.0.5"
   },
   "resolutions": {
     "angular": "1.2.15",

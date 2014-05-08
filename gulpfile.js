@@ -18,6 +18,7 @@ gulp.task('copy', function() {
 });
 gulp.task('scripts-libs', function() {
   gulp.src([
+        'bower_components/osmtogeojson/osmtogeojson.js',
         'bower_components/leaflet-dist/leaflet.js',
         'bower_components/angular/angular.min.js',
         'bower_components/angular-route/angular-route.min.js',
