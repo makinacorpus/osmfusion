@@ -24,7 +24,7 @@ angular.module('myApp.controllers').controller(
                 draggable: true
             }
         };
-        $scope.nodes = [];
+        $scope.nodes = undefined;
         $scope.mypassword = '';
 
         //those configuration that should be stored in localStorage
@@ -40,7 +40,8 @@ angular.module('myApp.controllers').controller(
             featureID: '',
             username: '',
             changesetID: '',
-            osmtags: {}
+            osmtags: {},
+            osmfilter: []
         });
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -160,12 +161,41 @@ angular.module('myApp.controllers').controller(
                     $scope.setLoadingStatus('jsonsettings', 'error');
                 });
         };
+        var onEachFeature = function(feature, layer){
+            //change icon ?
+        };
+        var style = function(feature) {
+            var tags = feature.properties.tags;
+            if (tags === undefined){
+                return;
+            }
+            if (tags.building !== undefined){
+                return {
+                    fillColor: "red",
+                    weight: 2,
+                    opacity: 1,
+                    color: 'red',
+                    fillOpacity: 0.4
+                };
+            }
+            if (tags.amenity !== undefined){
+                if (tags.amenity === 'parking'){
+                    return {
+                        fillColor: "blue",
+                        weight: 2,
+                        opacity: 1,
+                        color: 'blue',
+                        fillOpacity: 0.4
+                    };
+                }
+            }
+        };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
                 //purge cache of search
                 $scope.currentNode = undefined;
-                $scope.nodes = [];
+                $scope.nodes = undefined;
                 var lng = parseFloat(feature.geometry.coordinates[0]);
                 var lat = parseFloat(feature.geometry.coordinates[1]);
                 $scope.markers.Localisation.lng = lng;
@@ -176,17 +206,33 @@ angular.module('myApp.controllers').controller(
                 var b = map.getBounds();
                 $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
-                osmService.getMap(bbox).then(function(map){
-                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng});
-                    if ($scope.nodes.length > 0){
+                osmService.getMap(bbox).then(function(nodes){
+                    $scope.nodes = osmService.getNodesInJSON(nodes);
+                    if ($scope.nodes.features.length > 0){
                         $scope.setLoadingStatus('osmfeatures', 'success');
                     }else{
                         $scope.setLoadingStatus('osmfeatures', 'error');
                     }
-                    if ($scope.nodes.length === 1){
-                        $scope.setCurrentNode($scope.nodes[0]);
-                    }
                     $scope.loading.osmfeatures = false;
+                    //filter nodes
+                    var feature, result, newFeatures = [];
+                    for (var i = 0; i < $scope.nodes.features.length; i++) {
+                        feature = $scope.nodes.features[i];
+                        result = $scope.$eval($scope.settings.osmfilter[0], {feature: feature});
+                        if (result !== undefined){
+                            console.log('eval -> ' + result);
+                        }
+                        if (!result){
+                            newFeatures.push(feature);
+                        }
+                    };
+                    $scope.nodes.features = newFeatures;
+                    //display them on the map
+                    $scope.leafletGeojson = {
+                        data: $scope.nodes,
+                        style: style
+                    };
+
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
@@ -218,7 +264,7 @@ angular.module('myApp.controllers').controller(
             $scope.updatedNode = angular.copy(node);
             for (var property in $scope.settings.osmtags) {
                 if ($scope.settings.osmtags.hasOwnProperty(property)) {
-                    $scope.updatedNode.properties[property] = $scope.getCurrentNodeValueFromFeature(property);
+                    $scope.updatedNode.properties.tags[property] = $scope.getCurrentNodeValueFromFeature(property);
                 }
             }
         };
@@ -240,15 +286,15 @@ angular.module('myApp.controllers').controller(
                 return 'hidden';
             }
             if (value === '' || value === undefined){
-                if ($scope.currentNode.properties[key] === value){
+                if ($scope.currentNode.properties.tags[key] === value){
                     return;
                 }
                 return 'danger';
             }
-            if ($scope.currentNode.properties[key] === undefined){
+            if ($scope.currentNode.properties.tags[key] === undefined){
                 return 'success';
             }
-            if ($scope.currentNode.properties[key] !== value){
+            if ($scope.currentNode.properties.tags[key] !== value){
                 return 'warning';
             }
         };
@@ -287,15 +333,10 @@ angular.module('myApp.controllers').controller(
                 }
             );
         };
-        $scope.displayOSMNodes = function(){
-            $scope.leafletGeojson = {
-                data: {
-                    type: "FeatureCollection",
-                    features: $scope.nodes
-                }
-            };
-        };
-
+        $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
+            console.log('click');
+            $scope.setCurrentNode(featureSelected);
+        });
         $scope.$watch('settings', function(newValue, oldValue){
             if (newValue.geojsonURI !== oldValue.geojsonURI){
                 $scope.reloadFeatures();

@@ -124,49 +124,9 @@ angular.module('myApp.services').factory('osmService',
                 });
                 return deferred.promise;
             },
-            getNodesInJSON: function(xmlNodes, filter){
+            getNodesInJSON: function(xmlNodes){
                 this._nodes = xmlNodes;
-                var nodesHTML = xmlNodes.documentElement.getElementsByTagName('node');
-                var nodes = [];
-                var node, tags, tag, i, j;
-                for (i = 0; i < nodesHTML.length; i++) {
-                    var nlng = parseFloat(nodesHTML[i].getAttribute('lon'));
-                    var nlat = parseFloat(nodesHTML[i].getAttribute('lat'));
-                    if (filter !== undefined){
-                        if (filter.lat !== undefined && filter.lng !== undefined){
-                            var dlat = Math.abs(filter.lat - nlat);
-                            var dlng = Math.abs(filter.lng - nlng);
-                            if (dlat > 0.0005 || dlng > 0.0005){
-                                continue;
-                            }
-                        }
-                    }
-                    node = {
-                        type: 'Feature',
-                        properties: {id: nodesHTML[i].id},
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [nlng, nlat]
-                        }
-                    };
-                    tags = nodesHTML[i].getElementsByTagName('tag');
-                    for (j = 0; j < tags.length; j++) {
-                        tag = tags[j];
-                        node.properties[tag.getAttribute('k')] = tag.getAttribute('v');
-                    }
-                    if (filter.name){
-                        if (node.properties.name === undefined){
-                            continue;
-                        }
-                    }
-                    if (filter.amenity !== undefined){
-                        if (node.properties.amenity !== filter.amenity){
-                            continue;
-                        }
-                    }
-                    nodes.push(node);
-                }
-                return nodes;
+                return osmtogeojson(xmlNodes);
             },
 //OSM API: https://wiki.openstreetmap.org/wiki/API_v0.6
 
@@ -220,11 +180,11 @@ angular.module('myApp.services').factory('osmService',
                 while (node.firstChild) node.removeChild(node.firstChild);
                 var osm = document.createElement('osm');
                 osm.appendChild(node);
-                for (var property in updatedNode.properties) {
-                    if (updatedNode.properties.hasOwnProperty(property)) {
+                for (var property in updatedNode.properties.tags) {
+                    if (updatedNode.properties.tags.hasOwnProperty(property)) {
                         tag = document.createElement('tag');
                         tag.setAttribute('k', property);
-                        tag.setAttribute('v', updatedNode.properties[property]);
+                        tag.setAttribute('v', updatedNode.properties.tags[property]);
                         node.appendChild(tag);
                     }
                 }
