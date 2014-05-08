@@ -35,18 +35,12 @@ angular.module('myApp.controllers').controller(
 
         $scope.settings = $localStorage.$default({
             geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
-            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque-osmfusion.json',
-            featureName: 'properties.geo.name',
-            featureID: 'properties._IDOBJ',
+            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.json',
+            featureName: '',
+            featureID: '',
             username: '',
             changesetID: '',
-            osmtags: {
-                name: 'currentFeature.properties.geo.name',
-                amenity: "'library'",
-                'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-                'addr:postcode': 'currentFeature.properties.CODE_POSTAL',
-                phone: 'i18nPhone(currentFeature.properties.TELEPHONE)'
-            }
+            osmtags: {}
         });
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -116,33 +110,54 @@ angular.module('myApp.controllers').controller(
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
-            if ($scope.settings.geojsonURI.indexOf('http') === 0){
-                config = {
-                    params: {
-                        q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
-                        format: 'json'
-                    }
-                };
-                url = 'http://query.yahooapis.com/v1/public/yql';
-            }else{
-                url = $scope.settings.geojsonURI;
-            }
+            config = {
+                params: {
+                    q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
+                    format: 'json'
+                }
+            };
+            url = 'http://query.yahooapis.com/v1/public/yql';
             $http.get(url, config).then(
                 function(data){
                     $scope.loading.geojson = undefined;
-                    if (config !== undefined){
-                        if (data.data.query.results === null){
-                            $scope.features = [];
-                            return;
-                        }
-                        $scope.features = data.data.query.results.json.features;
-                    }else{
-                        $scope.features = data.data.features;
+                    if (data.data.query.results === null){
+                        $scope.features = [];
+                        return;
                     }
+                    $scope.features = data.data.query.results.json.features;
                     $scope.setLoadingStatus('geojson' , 'success');
                 }, function(){
                     $scope.loading.geojson = undefined;
                     $scope.setLoadingStatus('geojson', 'error');
+                });
+        };
+        $scope.reloadSettings = function(){
+            $scope.loading.jsonSettings = true;
+            var url, config;
+            config = {
+                params: {
+                    q: "select * from json where url='" + $scope.settings.jsonSettingsURI + "';",
+                    format: 'json'
+                }
+            };
+            url = 'http://query.yahooapis.com/v1/public/yql';
+            $http.get(url, config).then(
+                function(data){
+                    $scope.loading.jsonsettings = undefined;
+                    if (data.data.query.results === null){
+                        return;
+                    }
+                    var newSettings = data.data.query.results.settings;
+                    $scope.settings.featureName = newSettings.featureName;
+                    $scope.settings.featureID = newSettings.featureID;
+                    $scope.settings.username = newSettings.username;
+                    $scope.settings.changesetID = newSettings.changesetID;
+                    $scope.settings.osmtags = newSettings.osmtags;
+ 
+                    $scope.setLoadingStatus('jsonsettings' , 'success');
+                }, function(){
+                    $scope.loading.jsonSettings = undefined;
+                    $scope.setLoadingStatus('jsonsettings', 'error');
                 });
         };
         $scope.setCurrentFeature = function(feature){
@@ -162,7 +177,7 @@ angular.module('myApp.controllers').controller(
                 $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(map){
-                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
+                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng});
                     if ($scope.nodes.length > 0){
                         $scope.setLoadingStatus('osmfeatures', 'success');
                     }else{
@@ -181,14 +196,6 @@ angular.module('myApp.controllers').controller(
                 }
             });
         };
-        $scope.$watch('settings', function(newValue, oldValue){
-            if (newValue.geojsonURI !== oldValue.geojsonURI){
-                $scope.reloadFeatures();
-            }
-            if (newValue.featureID !== oldValue.featureID){
-                $scope.reloadFeatures();
-            }
-        }, true);
         $scope.login = function(){
             osmService.setCredentials($scope.settings.username, $scope.mypassword);
             osmService.validateCredentials().then(function(loggedin){
@@ -245,10 +252,13 @@ angular.module('myApp.controllers').controller(
                 return 'warning';
             }
         };
-        $scope.reloadFeatures();
 
         $scope.createChangeset = function(){
-            osmService.createChangeset($scope.settings.geojsonURI);
+            osmService.createChangeset($scope.settings.geojsonURI).then(
+                function(data){
+                    $scope.settings.changesetID = data;
+                }
+            );
         };
         $scope.getLastOpenedChangesetId = function(){
             osmService.getLastOpenedChangesetId().then(function(data){
@@ -268,11 +278,36 @@ angular.module('myApp.controllers').controller(
             osmService.updateNode($scope.currentNode, $scope.updatedNode).then(
                 function(){
                     $scope.setLoadingStatus('updateosm', 'success');
+                    $scope.loading.updateosm = false;
+                    //HACK: reload osm nodes by using setCurrentFeature
+                    $scope.setCurrentFeature($scope.currentFeature);
                 },function(){
                     $scope.setLoadingStatus('updateosm', 'error');
+                    $scope.loading.updateosm = false;
                 }
             );
         };
+        $scope.displayOSMNodes = function(){
+            $scope.leafletGeojson = {
+                data: {
+                    type: "FeatureCollection",
+                    features: $scope.nodes
+                }
+            };
+        };
+
+        $scope.$watch('settings', function(newValue, oldValue){
+            if (newValue.geojsonURI !== oldValue.geojsonURI){
+                $scope.reloadFeatures();
+            }
+            if (newValue.featureID !== oldValue.featureID){
+                $scope.reloadFeatures();
+            }
+        }, true);
+
+
+        $scope.reloadFeatures();
+        $scope.reloadSettings();
         //update services from peristent settings
         if ($scope.settings.credentials && $scope.settings.username){
             //validate credentials

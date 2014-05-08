@@ -106,6 +106,7 @@ angular.module('myApp.services').factory('osmService',
                     }else{
                         results = data.data;
                     }
+                    deferred.resolve(results);
                 },function(data) {
                     deferred.reject(data);
                 });
