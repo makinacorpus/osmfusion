@@ -173,11 +173,9 @@ angular.module('myApp.services').factory('osmService',
                 //first try to find the node by id
                 var node = this._nodes.getElementById(currentNode.properties.id);
                 var tag;
-                //incremenet version number
-//                node.setAttribute('version', parseInt(node.getAttribute('version')) + 1);
                 node.setAttribute('changeset', this._changeset);
                 node.setAttribute('user', this._login);
-                while (node.firstChild) node.removeChild(node.firstChild);
+                while (node.getElementsByTagName('tags')[0]) node.removeChild(node.getElementsByTagName('tags')[0]);
                 var osm = document.createElement('osm');
                 osm.appendChild(node);
                 for (var property in updatedNode.properties.tags) {

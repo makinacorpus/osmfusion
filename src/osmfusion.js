@@ -154,6 +154,7 @@ angular.module('myApp.controllers').controller(
                     $scope.settings.username = newSettings.username;
                     $scope.settings.changesetID = newSettings.changesetID;
                     $scope.settings.osmtags = newSettings.osmtags;
+                    $scope.settings.osmfilter = newSettings.osmfilter;
  
                     $scope.setLoadingStatus('jsonsettings' , 'success');
                 }, function(){
@@ -216,12 +217,15 @@ angular.module('myApp.controllers').controller(
                     $scope.loading.osmfeatures = false;
                     //filter nodes
                     var feature, result, newFeatures = [];
+                    result = false; //do not filter by default
                     for (var i = 0; i < $scope.nodes.features.length; i++) {
                         feature = $scope.nodes.features[i];
-                        result = $scope.$eval($scope.settings.osmfilter[0], {feature: feature});
-                        if (result !== undefined){
-                            console.log('eval -> ' + result);
-                        }
+                        for (var j = 0; j < $scope.settings.osmfilter.length; j++) {
+                            result = result || $scope.$eval(
+                                $scope.settings.osmfilter[j],
+                                {feature: feature}
+                            );
+                        };
                         if (!result){
                             newFeatures.push(feature);
                         }
@@ -232,7 +236,6 @@ angular.module('myApp.controllers').controller(
                         data: $scope.nodes,
                         style: style
                     };
-
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
