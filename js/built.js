@@ -399,6 +399,7 @@ angular.module('myApp.services').factory('osmService',
                     }else{
                         results = data.data;
                     }
+                    deferred.resolve(results);
                 },function(data) {
                     deferred.reject(data);
                 });
@@ -416,49 +417,9 @@ angular.module('myApp.services').factory('osmService',
                 });
                 return deferred.promise;
             },
-            getNodesInJSON: function(xmlNodes, filter){
+            getNodesInJSON: function(xmlNodes){
                 this._nodes = xmlNodes;
-                var nodesHTML = xmlNodes.documentElement.getElementsByTagName('node');
-                var nodes = [];
-                var node, tags, tag, i, j;
-                for (i = 0; i < nodesHTML.length; i++) {
-                    var nlng = parseFloat(nodesHTML[i].getAttribute('lon'));
-                    var nlat = parseFloat(nodesHTML[i].getAttribute('lat'));
-                    if (filter !== undefined){
-                        if (filter.lat !== undefined && filter.lng !== undefined){
-                            var dlat = Math.abs(filter.lat - nlat);
-                            var dlng = Math.abs(filter.lng - nlng);
-                            if (dlat > 0.0005 || dlng > 0.0005){
-                                continue;
-                            }
-                        }
-                    }
-                    node = {
-                        type: 'Feature',
-                        properties: {id: nodesHTML[i].id},
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [nlng, nlat]
-                        }
-                    };
-                    tags = nodesHTML[i].getElementsByTagName('tag');
-                    for (j = 0; j < tags.length; j++) {
-                        tag = tags[j];
-                        node.properties[tag.getAttribute('k')] = tag.getAttribute('v');
-                    }
-                    if (filter.name){
-                        if (node.properties.name === undefined){
-                            continue;
-                        }
-                    }
-                    if (filter.amenity !== undefined){
-                        if (node.properties.amenity !== filter.amenity){
-                            continue;
-                        }
-                    }
-                    nodes.push(node);
-                }
-                return nodes;
+                return osmtogeojson(xmlNodes);
             },
 //OSM API: https://wiki.openstreetmap.org/wiki/API_v0.6
 
@@ -505,18 +466,16 @@ angular.module('myApp.services').factory('osmService',
                 //first try to find the node by id
                 var node = this._nodes.getElementById(currentNode.properties.id);
                 var tag;
-                //incremenet version number
-//                node.setAttribute('version', parseInt(node.getAttribute('version')) + 1);
                 node.setAttribute('changeset', this._changeset);
                 node.setAttribute('user', this._login);
-                while (node.firstChild) node.removeChild(node.firstChild);
+                while (node.getElementsByTagName('tags')[0]) node.removeChild(node.getElementsByTagName('tags')[0]);
                 var osm = document.createElement('osm');
                 osm.appendChild(node);
-                for (var property in updatedNode.properties) {
-                    if (updatedNode.properties.hasOwnProperty(property)) {
+                for (var property in updatedNode.properties.tags) {
+                    if (updatedNode.properties.tags.hasOwnProperty(property)) {
                         tag = document.createElement('tag');
                         tag.setAttribute('k', property);
-                        tag.setAttribute('v', updatedNode.properties[property]);
+                        tag.setAttribute('v', updatedNode.properties.tags[property]);
                         node.appendChild(tag);
                     }
                 }
@@ -554,7 +513,7 @@ angular.module('myApp.controllers').controller(
                 draggable: true
             }
         };
-        $scope.nodes = [];
+        $scope.nodes = undefined;
         $scope.mypassword = '';
 
         //those configuration that should be stored in localStorage
@@ -565,18 +524,13 @@ angular.module('myApp.controllers').controller(
 
         $scope.settings = $localStorage.$default({
             geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
-            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque-osmfusion.json',
-            featureName: 'properties.geo.name',
-            featureID: 'properties._IDOBJ',
+            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.json',
+            featureName: '',
+            featureID: '',
             username: '',
             changesetID: '',
-            osmtags: {
-                name: 'currentFeature.properties.geo.name',
-                amenity: "'library'",
-                'addr:city': 'capitalize(currentFeature.properties.COMMUNE)',
-                'addr:postcode': 'currentFeature.properties.CODE_POSTAL',
-                phone: 'i18nPhone(currentFeature.properties.TELEPHONE)'
-            }
+            osmtags: {},
+            osmfilter: []
         });
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
@@ -646,41 +600,92 @@ angular.module('myApp.controllers').controller(
         $scope.reloadFeatures = function(){
             $scope.loading.geojson = true;
             var url, config;
-            if ($scope.settings.geojsonURI.indexOf('http') === 0){
-                config = {
-                    params: {
-                        q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
-                        format: 'json'
-                    }
-                };
-                url = 'http://query.yahooapis.com/v1/public/yql';
-            }else{
-                url = $scope.settings.geojsonURI;
-            }
+            config = {
+                params: {
+                    q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
+                    format: 'json'
+                }
+            };
+            url = 'http://query.yahooapis.com/v1/public/yql';
             $http.get(url, config).then(
                 function(data){
                     $scope.loading.geojson = undefined;
-                    if (config !== undefined){
-                        if (data.data.query.results === null){
-                            $scope.features = [];
-                            return;
-                        }
-                        $scope.features = data.data.query.results.json.features;
-                    }else{
-                        $scope.features = data.data.features;
+                    if (data.data.query.results === null){
+                        $scope.features = [];
+                        return;
                     }
+                    $scope.features = data.data.query.results.json.features;
                     $scope.setLoadingStatus('geojson' , 'success');
                 }, function(){
                     $scope.loading.geojson = undefined;
                     $scope.setLoadingStatus('geojson', 'error');
                 });
         };
+        $scope.reloadSettings = function(){
+            $scope.loading.jsonSettings = true;
+            var url, config;
+            config = {
+                params: {
+                    q: "select * from json where url='" + $scope.settings.jsonSettingsURI + "';",
+                    format: 'json'
+                }
+            };
+            url = 'http://query.yahooapis.com/v1/public/yql';
+            $http.get(url, config).then(
+                function(data){
+                    $scope.loading.jsonsettings = undefined;
+                    if (data.data.query.results === null){
+                        return;
+                    }
+                    var newSettings = data.data.query.results.settings;
+                    $scope.settings.featureName = newSettings.featureName;
+                    $scope.settings.featureID = newSettings.featureID;
+                    $scope.settings.username = newSettings.username;
+                    $scope.settings.changesetID = newSettings.changesetID;
+                    $scope.settings.osmtags = newSettings.osmtags;
+                    $scope.settings.osmfilter = newSettings.osmfilter;
+ 
+                    $scope.setLoadingStatus('jsonsettings' , 'success');
+                }, function(){
+                    $scope.loading.jsonSettings = undefined;
+                    $scope.setLoadingStatus('jsonsettings', 'error');
+                });
+        };
+        var onEachFeature = function(feature, layer){
+            //change icon ?
+        };
+        var style = function(feature) {
+            var tags = feature.properties.tags;
+            if (tags === undefined){
+                return;
+            }
+            if (tags.building !== undefined){
+                return {
+                    fillColor: "red",
+                    weight: 2,
+                    opacity: 1,
+                    color: 'red',
+                    fillOpacity: 0.4
+                };
+            }
+            if (tags.amenity !== undefined){
+                if (tags.amenity === 'parking'){
+                    return {
+                        fillColor: "blue",
+                        weight: 2,
+                        opacity: 1,
+                        color: 'blue',
+                        fillOpacity: 0.4
+                    };
+                }
+            }
+        };
         $scope.setCurrentFeature = function(feature){
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
                 //purge cache of search
                 $scope.currentNode = undefined;
-                $scope.nodes = [];
+                $scope.nodes = undefined;
                 var lng = parseFloat(feature.geometry.coordinates[0]);
                 var lat = parseFloat(feature.geometry.coordinates[1]);
                 $scope.markers.Localisation.lng = lng;
@@ -691,17 +696,35 @@ angular.module('myApp.controllers').controller(
                 var b = map.getBounds();
                 $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
-                osmService.getMap(bbox).then(function(map){
-                    $scope.nodes = osmService.getNodesInJSON(map, {lat:lat, lng:lng, amenity: 'library'});
-                    if ($scope.nodes.length > 0){
+                osmService.getMap(bbox).then(function(nodes){
+                    $scope.nodes = osmService.getNodesInJSON(nodes);
+                    if ($scope.nodes.features.length > 0){
                         $scope.setLoadingStatus('osmfeatures', 'success');
                     }else{
                         $scope.setLoadingStatus('osmfeatures', 'error');
                     }
-                    if ($scope.nodes.length === 1){
-                        $scope.setCurrentNode($scope.nodes[0]);
-                    }
                     $scope.loading.osmfeatures = false;
+                    //filter nodes
+                    var feature, result, newFeatures = [];
+                    result = false; //do not filter by default
+                    for (var i = 0; i < $scope.nodes.features.length; i++) {
+                        feature = $scope.nodes.features[i];
+                        for (var j = 0; j < $scope.settings.osmfilter.length; j++) {
+                            result = result || $scope.$eval(
+                                $scope.settings.osmfilter[j],
+                                {feature: feature}
+                            );
+                        };
+                        if (!result){
+                            newFeatures.push(feature);
+                        }
+                    };
+                    $scope.nodes.features = newFeatures;
+                    //display them on the map
+                    $scope.leafletGeojson = {
+                        data: $scope.nodes,
+                        style: style
+                    };
                 });
                 $scope.currentFeature.osm = {};
                 for (var property in $scope.settings.osmtags) {
@@ -711,14 +734,6 @@ angular.module('myApp.controllers').controller(
                 }
             });
         };
-        $scope.$watch('settings', function(newValue, oldValue){
-            if (newValue.geojsonURI !== oldValue.geojsonURI){
-                $scope.reloadFeatures();
-            }
-            if (newValue.featureID !== oldValue.featureID){
-                $scope.reloadFeatures();
-            }
-        }, true);
         $scope.login = function(){
             osmService.setCredentials($scope.settings.username, $scope.mypassword);
             osmService.validateCredentials().then(function(loggedin){
@@ -741,7 +756,7 @@ angular.module('myApp.controllers').controller(
             $scope.updatedNode = angular.copy(node);
             for (var property in $scope.settings.osmtags) {
                 if ($scope.settings.osmtags.hasOwnProperty(property)) {
-                    $scope.updatedNode.properties[property] = $scope.getCurrentNodeValueFromFeature(property);
+                    $scope.updatedNode.properties.tags[property] = $scope.getCurrentNodeValueFromFeature(property);
                 }
             }
         };
@@ -763,22 +778,25 @@ angular.module('myApp.controllers').controller(
                 return 'hidden';
             }
             if (value === '' || value === undefined){
-                if ($scope.currentNode.properties[key] === value){
+                if ($scope.currentNode.properties.tags[key] === value){
                     return;
                 }
                 return 'danger';
             }
-            if ($scope.currentNode.properties[key] === undefined){
+            if ($scope.currentNode.properties.tags[key] === undefined){
                 return 'success';
             }
-            if ($scope.currentNode.properties[key] !== value){
+            if ($scope.currentNode.properties.tags[key] !== value){
                 return 'warning';
             }
         };
-        $scope.reloadFeatures();
 
         $scope.createChangeset = function(){
-            osmService.createChangeset($scope.settings.geojsonURI);
+            osmService.createChangeset($scope.settings.geojsonURI).then(
+                function(data){
+                    $scope.settings.changesetID = data;
+                }
+            );
         };
         $scope.getLastOpenedChangesetId = function(){
             osmService.getLastOpenedChangesetId().then(function(data){
@@ -798,11 +816,31 @@ angular.module('myApp.controllers').controller(
             osmService.updateNode($scope.currentNode, $scope.updatedNode).then(
                 function(){
                     $scope.setLoadingStatus('updateosm', 'success');
+                    $scope.loading.updateosm = false;
+                    //HACK: reload osm nodes by using setCurrentFeature
+                    $scope.setCurrentFeature($scope.currentFeature);
                 },function(){
                     $scope.setLoadingStatus('updateosm', 'error');
+                    $scope.loading.updateosm = false;
                 }
             );
         };
+        $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
+            console.log('click');
+            $scope.setCurrentNode(featureSelected);
+        });
+        $scope.$watch('settings', function(newValue, oldValue){
+            if (newValue.geojsonURI !== oldValue.geojsonURI){
+                $scope.reloadFeatures();
+            }
+            if (newValue.featureID !== oldValue.featureID){
+                $scope.reloadFeatures();
+            }
+        }, true);
+
+
+        $scope.reloadFeatures();
+        $scope.reloadSettings();
         //update services from peristent settings
         if ($scope.settings.credentials && $scope.settings.username){
             //validate credentials
