@@ -1,0 +1,131 @@
+<tabset>
+  <tab heading="URL">
+<div class="form-group">
+  <label>Source</label>
+  <p class="help-block">URL of the geojson file to use as features source</p>
+  <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadFeatures()'}">
+    <input type="text" class="form-control" ng-model="settings.geojsonURI"/>
+    <span class="input-group-addon">
+      <i class="fa fa-refresh fa-spin" ng-show="loading.geojson"></i>
+      <i class="fa fa-check fa-fw text-success" ng-show="loading.geojsonsuccess"></i>
+      <i class="fa fa-times fa-fw text-danger" ng-show="loading.geojsonerror"></i>
+    </span>
+  </div>
+  <label>Configuration</label>
+  <p class="help-block">URL of the json file to use as configuration source</p>
+  <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadSettings()'}">
+    <input type="text" class="form-control" ng-model="settings.jsonSettingsURI"/>
+    <span class="input-group-addon">
+      <i class="fa fa-refresh fa-spin" ng-show="loading.jsonsettings"></i>
+      <i class="fa fa-check fa-fw text-success" ng-show="loading.jsonsettingssuccess"></i>
+      <i class="fa fa-times fa-fw text-danger" ng-show="loading.jsonsettingserror"></i>
+    </span>
+  </div>
+</div>
+  </tab>
+  <tab heading="User interface">
+
+<div class="form-group">
+  <p class="help-block"></p>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" ng-model="settings.preferAdding"> Prefer adding new OSM nodes
+    </label>
+  </div>
+</div>
+  </tab>
+  <tab heading="Source">
+<table class="table table-condensed">
+  <tr>
+    <td>Feature ID</td>
+    <td>
+      <input type="text" class="form-control" ng-model="settings.featureID"/>
+    </td>
+    <td>{{getFeatureID(currentFeature)}}</td>
+  </tr>
+  <tr>
+    <td>Feature name</td>
+    <td>
+      <input type="text" class="form-control" ng-model="settings.featureName"/>
+    </td>
+    <td>{{getFeatureName(currentFeature)}}</td>
+  </tr>
+</table>
+  </tab>
+  <tab heading="OSM Tags Mapping">
+
+<div class="panel panel-default">
+  <div class="panel-body">
+
+    <p class="help-block">You can write angular expression to fill the value that will be used to insert / update OSM database. For more information about angular expression please read the following <a href="https://docs.angularjs.org/guide/expression">Angular Expressions</a></p>
+    <table class="table table-condensed">
+      <tr ng-repeat="(key, value) in settings.osmtags track by $index">
+        <td width="20px">
+          <button class="btn btn-danger" ng-click="deleteOSMTag(key)"><i class="fa fa-times-circle-o"></i></button>
+        </td>
+        <td>
+          {{key}}
+        </td>
+        <td>
+          <input class="form-control" type="text" ng-model="settings.osmtags[key]"/>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <input type="text" class="form-control" ng-model="newOSMKey" placeholder="key"/>
+        </td>
+        <td>
+          <input type="text" class="form-control" ng-model="newOSMValueExpr" placeholder="value expression"/>
+        </td>
+      </tr>
+    </table>
+    <button class="btn btn-default" ng-click="addOSMTag(newOSMKey, newOSMValueExpr)">Add tag</button>
+  </div>
+</div>
+  </tab>
+  <tab heading="OSM Filters">
+
+<div class="panel panel-default">
+  <div class="panel-body">
+
+    <p class="help-block">You can write angular expression to filter nodes from OSM database. For more information about angular expression please read the following <a href="https://docs.angularjs.org/guide/expression">Angular Expressions</a></p>
+    <table class="table table-condensed">
+      <tr ng-repeat="f in settings.osmfilter track by $index">
+        <td width="20px">
+          <button class="btn btn-danger" ng-click="deleteOSMFilter(f)"><i class="fa fa-times-circle-o"></i></button>
+        </td>
+        <td>
+          <input class="form-control" type="text" ng-model="f"/>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <input type="text" class="form-control" ng-model="newOSMFilterExpr" placeholder="value expression"/>
+        </td>
+      </tr>
+    </table>
+    <button class="btn btn-default" ng-click="addOSMFilter(newOSMFilterExpr)">Add filter</button>
+  </div>
+</div>
+  </tab>
+  <tab heading="Debug">
+<div class="panel panel-default" ng-show="currentFeature">
+  <div class="panel-heading">Current feature Key/Value</div>
+  <div class="panel-body">
+    <table class="table table-condensed">
+      <tr ng-repeat="(key, value) in currentFeature.properties">
+        <td>
+          {{key}}
+        </td>
+        <td>
+          <input class="form-control" type="text" value="{{value}}"/>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+  </tab>
+</tabset>
