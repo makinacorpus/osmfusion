@@ -134,11 +134,13 @@ angular.module('myApp.services').factory('osmService',
             https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2Fchangeset.2Fcreate
              */
             createChangeset: function(sourceURI){
+                var self = this;
                 var deferred = $q.defer();
                 var changeset = '<osm><changeset><tag k="created_by" v="OSMFusion"/><tag k="comment" v="';
                 changeset += 'Import data from ' + sourceURI + '"/></changeset></osm>';
                 this.put('/0.6/changeset/create', changeset).then(function(data){
-                    debugger;
+                    self._changeset = data;
+                    deferred.resolve(data);
                 });
                 return deferred.promise;
             },
@@ -172,17 +174,31 @@ angular.module('myApp.services').factory('osmService',
                 //we need to do the diff and build the xml
                 //first try to find the node by id
                 var node = this._nodes.getElementById(currentNode.properties.id);
+                if (node === null){
+                    var deferred = $q.defer();
+                    deferred.reject({
+                        msg: 'can t find node',
+                        currentNode: currentNode,
+                        updatedNode: updatedNode
+                    });
+                    return deferred.promise;
+                }
                 var tag;
                 node.setAttribute('changeset', this._changeset);
                 node.setAttribute('user', this._login);
-                while (node.getElementsByTagName('tags')[0]) node.removeChild(node.getElementsByTagName('tags')[0]);
+                while (node.getElementsByTagName('tag')[0]) node.removeChild(node.getElementsByTagName('tag')[0]);
                 var osm = document.createElement('osm');
+                var value;
                 osm.appendChild(node);
                 for (var property in updatedNode.properties.tags) {
                     if (updatedNode.properties.tags.hasOwnProperty(property)) {
+                        value = updatedNode.properties.tags[property];
+                        if (value === undefined){
+                            continue;
+                        }
                         tag = document.createElement('tag');
                         tag.setAttribute('k', property);
-                        tag.setAttribute('v', updatedNode.properties.tags[property]);
+                        tag.setAttribute('v', value);
                         node.appendChild(tag);
                     }
                 }

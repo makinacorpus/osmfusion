@@ -41,8 +41,12 @@ angular.module('myApp.controllers').controller(
             username: '',
             changesetID: '',
             osmtags: {},
-            osmfilter: []
+            osmfilter: [],
+            preferAdding: false
         });
+        $scope.newOSMKey = '';
+        $scope.newOSMValueExpr = '';
+
         $scope.capitalize = function(string) {
             return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
         };
@@ -146,16 +150,19 @@ angular.module('myApp.controllers').controller(
                 function(data){
                     $scope.loading.jsonsettings = undefined;
                     if (data.data.query.results === null){
+                        $scope.setLoadingStatus('jsonsettings', 'error');
                         return;
                     }
                     var newSettings = data.data.query.results.settings;
+                    if (newSettings === undefined){
+                        $scope.setLoadingStatus('jsonsettings', 'error');
+                        return;
+                    }
                     $scope.settings.featureName = newSettings.featureName;
                     $scope.settings.featureID = newSettings.featureID;
-                    $scope.settings.username = newSettings.username;
-                    $scope.settings.changesetID = newSettings.changesetID;
                     $scope.settings.osmtags = newSettings.osmtags;
                     $scope.settings.osmfilter = newSettings.osmfilter;
- 
+                    $scope.settings.preferAdding = newSettings.preferAdding;
                     $scope.setLoadingStatus('jsonsettings' , 'success');
                 }, function(){
                     $scope.loading.jsonSettings = undefined;
@@ -192,6 +199,7 @@ angular.module('myApp.controllers').controller(
             }
         };
         $scope.setCurrentFeature = function(feature){
+            $scope.q = $scope.getFeatureName(feature);
             leafletData.getMap().then(function(map){
                 $scope.currentFeature = feature;
                 //purge cache of search
@@ -217,19 +225,22 @@ angular.module('myApp.controllers').controller(
                     $scope.loading.osmfeatures = false;
                     //filter nodes
                     var feature, result, newFeatures = [];
-                    result = false; //do not filter by default
                     for (var i = 0; i < $scope.nodes.features.length; i++) {
                         feature = $scope.nodes.features[i];
+                        result = false; //do not filter by default
                         for (var j = 0; j < $scope.settings.osmfilter.length; j++) {
                             result = result || $scope.$eval(
                                 $scope.settings.osmfilter[j],
                                 {feature: feature}
                             );
-                        };
+                            if (result){
+                                continue;
+                            }
+                        }
                         if (!result){
                             newFeatures.push(feature);
                         }
-                    };
+                    }
                     $scope.nodes.features = newFeatures;
                     //display them on the map
                     $scope.leafletGeojson = {
@@ -263,6 +274,7 @@ angular.module('myApp.controllers').controller(
             $scope.loggedin = false;
         };
         $scope.setCurrentNode = function(node){
+            $scope.loading.updateosm = undefined;
             $scope.currentNode = node;
             $scope.updatedNode = angular.copy(node);
             for (var property in $scope.settings.osmtags) {
@@ -271,10 +283,11 @@ angular.module('myApp.controllers').controller(
                 }
             }
         };
-        $scope.addOSMTag = function(){
-            $scope.settings.osmtags[$scope.newOSMKey] = $scope.newOSMValueExpr;
-            $scope.newOSMKey = '';
-            $scope.newOSMValueExpr = '';
+        $scope.addOSMTag = function(key, value){
+            $scope.settings.osmtags[key] = value;
+        };
+        $scope.addOSMFilter = function(filter){
+            $scope.settings.osmfilter.push(filter);
         };
         $scope.getCurrentNodeValueFromFeature = function(key){
             if ($scope.settings.osmtags[key] !== undefined){
@@ -326,14 +339,36 @@ angular.module('myApp.controllers').controller(
             $scope.loading.updateosm = true;
             osmService.updateNode($scope.currentNode, $scope.updatedNode).then(
                 function(){
-                    $scope.setLoadingStatus('updateosm', 'success');
+                    $scope.setLoadingStatus('updateosm', 'success', 1000);
                     $scope.loading.updateosm = false;
-                    //HACK: reload osm nodes by using setCurrentFeature
-                    $scope.setCurrentFeature($scope.currentFeature);
+                    //update node properties (because it's a copy from the server)
+                    for (var property in $scope.currentNode.properties.tags) {
+                        if ($scope.currentNode.properties.tags.hasOwnProperty(property)) {
+                            if ($scope.updatedNode.properties.tags[property] === undefined){
+                                delete $scope.currentNode.properties.tags[property];
+                            }else{
+                                $scope.currentNode.properties.tags[property] = $scope.updatedNode.properties.tags[property];
+                            }
+                        }
+                    }
                 },function(){
-                    $scope.setLoadingStatus('updateosm', 'error');
+                    $scope.setLoadingStatus('updateosm', 'error', 1000);
                     $scope.loading.updateosm = false;
                 }
+            );
+        };
+        $scope.selectNextFeature = function(){
+            $scope.setCurrentFeature(
+                $scope.features[
+                    $scope.features.indexOf($scope.currentFeature) + 1
+                ]
+            );
+        };
+        $scope.selectPrevisouFeature = function(){
+            $scope.setCurrentFeature(
+                $scope.features[
+                    $scope.features.indexOf($scope.currentFeature) + 1
+                ]
             );
         };
         $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
