@@ -18,7 +18,7 @@
     "angular-bootstrap": "~0.10.0",
     "angular-carousel": "*",
     "angular-cookies": "1.2.15",
-    "angular-leaflet": "0.7.5",
+    "angular-leaflet": "0.7.7",
     "angular-loader": "1.2.15",
     "angular-mocks": "1.2.15",
     "angular-resource": "1.2.15",

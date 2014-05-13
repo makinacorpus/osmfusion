@@ -9,8 +9,8 @@ angular.module('myApp').config(['$routeProvider', function($routeProvider) {
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
-    ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData', '$localStorage',
-    function($scope, $http, $timeout, messagesService, osmService, leafletData, $localStorage){
+    ['$scope', '$http', '$timeout', '$filter', 'messagesService', 'osmService', 'leafletData', '$localStorage',
+    function($scope, $http, $timeout, $filter, messagesService, osmService, leafletData, $localStorage){
 
         //configuration
         $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
@@ -24,6 +24,48 @@ angular.module('myApp.controllers').controller(
                 draggable: true
             }
         };
+        $scope.layers = {
+            baselayers: {
+                osm: {
+                    name: 'OpenStreetMap',
+                    url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    type: 'xyz',
+                    maxZoom: 20,
+                    visible: true
+                },
+                hot: {
+                    name: 'Hot',
+                    type: 'xyz',
+                    visible: false,
+                    url: 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                    layerParams: {
+                        attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+                    }
+                },
+                esriphoto: {
+                    name: 'Photo (ESRI)',
+                    type: 'xyz',
+                    visible: false,
+                    url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    layerParams: {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }
+                }
+            }
+        };
+        var idIcon = L.icon({
+            iconUrl: 'images/id-icon.png',
+            shadowUrl: 'images/marker-shadow.png',
+            iconSize:     [15, 21], // size of the icon
+            shadowSize:   [20, 30], // size of the shadow
+            iconAnchor:   [15, 21], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 30],  // the same for the shadow
+            popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+        });
+        var pointToLayer = function (feature, latlng) {
+            return L.marker(latlng, {icon: idIcon});
+        };
+        $scope.queryFeature = '';
         $scope.nodes = undefined;
         $scope.mypassword = '';
 
@@ -34,8 +76,8 @@ angular.module('myApp.controllers').controller(
         };
 
         $scope.settings = $localStorage.$default({
-            geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
-            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.json',
+            geojsonURI: '',
+            jsonSettingsURI: '',
             featureName: '',
             featureID: '',
             username: '',
@@ -199,21 +241,21 @@ angular.module('myApp.controllers').controller(
             }
         };
         $scope.setCurrentFeature = function(feature){
-            $scope.q = $scope.getFeatureName(feature);
-            leafletData.getMap().then(function(map){
-                $scope.currentFeature = feature;
+            $scope.queryFeature = $scope.getFeatureName(feature);
+            $scope.currentFeature = feature;
+            $scope.currentNode = undefined;
+            $scope.nodes = undefined;
+            var lng = parseFloat(feature.geometry.coordinates[0]);
+            var lat = parseFloat(feature.geometry.coordinates[1]);
+            $scope.markers.Localisation.lng = lng;
+            $scope.markers.Localisation.lat = lat;
+            $scope.markers.Localisation.message = $scope.getFeatureName(feature);
+            $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
+            $scope.loading.osmfeatures = true;
+            leafletData.getMap().then(function(map){                
                 //purge cache of search
-                $scope.currentNode = undefined;
-                $scope.nodes = undefined;
-                var lng = parseFloat(feature.geometry.coordinates[0]);
-                var lat = parseFloat(feature.geometry.coordinates[1]);
-                $scope.markers.Localisation.lng = lng;
-                $scope.markers.Localisation.lat = lat;
-                $scope.markers.Localisation.message = $scope.getFeatureName(feature);
                 map.setView(L.latLng(lat, lng), 18);
-                $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
-                $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(nodes){
                     $scope.nodes = osmService.getNodesInJSON(nodes);
@@ -245,6 +287,7 @@ angular.module('myApp.controllers').controller(
                     //display them on the map
                     $scope.leafletGeojson = {
                         data: $scope.nodes,
+                        pointToLayer: pointToLayer,
                         style: style
                     };
                 });
@@ -371,6 +414,12 @@ angular.module('myApp.controllers').controller(
                 ]
             );
         };
+        $scope.addToOSM = function(){
+
+        };
+        $scope.displayAllFeatures = function(){
+            $scope.queryFeature = '';
+        };
         $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
             console.log('click');
             $scope.setCurrentNode(featureSelected);
@@ -383,8 +432,6 @@ angular.module('myApp.controllers').controller(
                 $scope.reloadFeatures();
             }
         }, true);
-
-
         $scope.reloadFeatures();
         $scope.reloadSettings();
         //update services from peristent settings
