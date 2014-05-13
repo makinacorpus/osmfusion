@@ -296,10 +296,6 @@ angular.module('myApp.controllers').controller(
 angular.module('myApp.services').factory('osmService',
     ['$base64', '$cookieStore', '$http', '$q',
     function ($base64, $cookieStore, $http, $q) {
-        var API = 'http://api.openstreetmap.org/api';
-//        var API = 'http://api06.dev.openstreetmap.org/api';
-        // initialize to whatever is in the cookie, if anything
-        //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
         var parseXml;
 
         if (typeof window.DOMParser !== 'undefined') {
@@ -324,6 +320,7 @@ angular.module('myApp.services').factory('osmService',
             _login: '',
             _nodes: [],
             _changeset: '',
+            API: 'http://api.openstreetmap.org/api',
 
             validateCredentials: function(){
                 var deferred = $q.defer();
@@ -365,7 +362,7 @@ angular.module('myApp.services').factory('osmService',
                 var deferred = $q.defer();
                 var self = this;
 
-                $http.get(API + method, config).then(function(data){
+                $http.get(self.API + method, config).then(function(data){
                     var contentType = data.headers()['content-type'];
                     var results;
                     if (contentType.indexOf("application/xml;") === 0){
@@ -389,7 +386,7 @@ angular.module('myApp.services').factory('osmService',
                     config = {};
                 }
                 config.headers = {Authorization: this.getAuthorization()};
-                $http.put(API + method, content, config).then(function(data){
+                $http.put(self.API + method, content, config).then(function(data){
                     var contentType = data.headers()['content-type'];
                     var results;
                     if (contentType.indexOf("application/xml;") === 0){
@@ -421,11 +418,6 @@ angular.module('myApp.services').factory('osmService',
                 this._nodes = xmlNodes;
                 return osmtogeojson(xmlNodes);
             },
-//OSM API: https://wiki.openstreetmap.org/wiki/API_v0.6
-
-            /*
-            https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2Fchangeset.2Fcreate
-             */
             createChangeset: function(sourceURI){
                 var self = this;
                 var deferred = $q.defer();
@@ -467,12 +459,13 @@ angular.module('myApp.services').factory('osmService',
                 //we need to do the diff and build the xml
                 //first try to find the node by id
                 var node = this._nodes.getElementById(currentNode.properties.id);
+                var deferred = $q.defer(); //only for errors
                 if (node === null){
-                    var deferred = $q.defer();
                     deferred.reject({
                         msg: 'can t find node',
                         currentNode: currentNode,
-                        updatedNode: updatedNode
+                        updatedNode: updatedNode,
+                        osmNode: node
                     });
                     return deferred.promise;
                 }
@@ -495,8 +488,50 @@ angular.module('myApp.services').factory('osmService',
                         node.appendChild(tag);
                     }
                 }
+                var nodeType;
+                if (updatedNode.geometry.type === 'Polygon'){
+                    nodeType = 'way';
+                }else if (updatedNode.geometry.type === 'Point'){
+                    nodeType = 'node';
+                }else if (updateNode.geometry.type === 'LineString'){
+                    nodeType = 'way';
+                }else{
+                    deferred.reject({
+                        msg: 'geojson type not supported',
+                        currentNode: currentNode,
+                        updatedNode: updatedNode,
+                        osmNode: node
+                    });
+                    return deferred.promise;
+                }
                 //put request !!
-                return this.put('/0.6/node/' + currentNode.properties.id, osm.outerHTML);
+                return this.put('/0.6/' + nodeType + '/' + currentNode.properties.id, osm.outerHTML);
+            },
+            addNode: function(feature){
+                var newNode = '<osm><node changeset="CHANGESET" lat="LAT" lon="LNG">TAGS</node></osm>';
+                var tagTPL = '<tag k="KEY" v="VALUE"/>';
+                var tags = '';
+                var value;
+                newNode = newNode.replace('CHANGESET', this._changeset);
+                for (var property in feature.osm) {
+                    if (feature.osm.hasOwnProperty(property)) {
+                        value = feature.osm[property];
+                        if (value === undefined || value === null){
+                            continue;
+                        }else{
+                            tags = tags + tagTPL.replace('KEY', property).replace('VALUE', feature.osm[property]);
+                        }
+                    }
+                }
+                newNode = newNode.replace('TAGS', tags);
+                if (feature.geometry.type === 'Point'){
+                    newNode = newNode.replace('LNG', feature.geometry.coordinates[0]);
+                    newNode = newNode.replace('LAT', feature.geometry.coordinates[1]);
+                }else{
+                    throw new Error('Can t save sth else than Point');
+                }
+                console.log('create new node with ' + newNode);
+                return this.put('/0.6/node/create', newNode);
             }
         };
         return service;
@@ -514,8 +549,8 @@ angular.module('myApp').config(['$routeProvider', function($routeProvider) {
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
-    ['$scope', '$http', '$timeout', 'messagesService', 'osmService', 'leafletData', '$localStorage',
-    function($scope, $http, $timeout, messagesService, osmService, leafletData, $localStorage){
+    ['$scope', '$http', '$timeout', '$filter', 'messagesService', 'osmService', 'leafletData', '$localStorage',
+    function($scope, $http, $timeout, $filter, messagesService, osmService, leafletData, $localStorage){
 
         //configuration
         $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
@@ -529,6 +564,50 @@ angular.module('myApp.controllers').controller(
                 draggable: true
             }
         };
+        $scope.layers = {
+            baselayers: {
+                osm: {
+                    name: 'OpenStreetMap',
+                    url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    type: 'xyz',
+                    maxZoom: 20,
+                    visible: true
+                },
+                hot: {
+                    name: 'Hot',
+                    type: 'xyz',
+                    visible: false,
+                    url: 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                    layerParams: {
+                        attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+                    }
+                },
+                esriphoto: {
+                    name: 'Photo (ESRI)',
+                    type: 'xyz',
+                    visible: false,
+                    url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    layerParams: {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    }
+                }
+            }
+        };
+        $scope.leafletGeojson = {};
+        var hiddenLeafletGeojson;
+        var idIcon = L.icon({
+            iconUrl: 'images/id-icon.png',
+            shadowUrl: 'images/marker-shadow.png',
+            iconSize:     [15, 21], // size of the icon
+            shadowSize:   [20, 30], // size of the shadow
+            iconAnchor:   [15, 21], // point of the icon which will correspond to marker's location
+            shadowAnchor: [4, 30],  // the same for the shadow
+            popupAnchor:  [-3, -20] // point from which the popup should open relative to the iconAnchor
+        });
+        var pointToLayer = function (feature, latlng) {
+            return L.marker(latlng, {icon: idIcon});
+        };
+        $scope.queryFeature = '';
         $scope.nodes = undefined;
         $scope.mypassword = '';
 
@@ -539,8 +618,8 @@ angular.module('myApp.controllers').controller(
         };
 
         $scope.settings = $localStorage.$default({
-            geojsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.geo.json',
-            settingjsonURI: 'https://raw.githubusercontent.com/toutpt/opendata-nantes-geojson/master/static/geojson/culture-bibliotheque.json',
+            geojsonURI: '',
+            jsonSettingsURI: '',
             featureName: '',
             featureID: '',
             username: '',
@@ -704,21 +783,21 @@ angular.module('myApp.controllers').controller(
             }
         };
         $scope.setCurrentFeature = function(feature){
-            $scope.q = $scope.getFeatureName(feature);
-            leafletData.getMap().then(function(map){
-                $scope.currentFeature = feature;
+            $scope.queryFeature = $scope.getFeatureName(feature);
+            $scope.currentFeature = feature;
+            $scope.currentNode = undefined;
+            $scope.nodes = undefined;
+            var lng = parseFloat(feature.geometry.coordinates[0]);
+            var lat = parseFloat(feature.geometry.coordinates[1]);
+            $scope.markers.Localisation.lng = lng;
+            $scope.markers.Localisation.lat = lat;
+            $scope.markers.Localisation.message = $scope.getFeatureName(feature);
+            $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
+            $scope.loading.osmfeatures = true;
+            leafletData.getMap().then(function(map){                
                 //purge cache of search
-                $scope.currentNode = undefined;
-                $scope.nodes = undefined;
-                var lng = parseFloat(feature.geometry.coordinates[0]);
-                var lat = parseFloat(feature.geometry.coordinates[1]);
-                $scope.markers.Localisation.lng = lng;
-                $scope.markers.Localisation.lat = lat;
-                $scope.markers.Localisation.message = $scope.getFeatureName(feature);
-                map.setView(L.latLng(lat, lng), 17);
-                $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
+                map.setView(L.latLng(lat, lng), 18);
                 var b = map.getBounds();
-                $scope.loading.osmfeatures = true;
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(nodes){
                     $scope.nodes = osmService.getNodesInJSON(nodes);
@@ -750,6 +829,7 @@ angular.module('myApp.controllers').controller(
                     //display them on the map
                     $scope.leafletGeojson = {
                         data: $scope.nodes,
+                        pointToLayer: pointToLayer,
                         style: style
                     };
                 });
@@ -790,6 +870,9 @@ angular.module('myApp.controllers').controller(
         };
         $scope.addOSMTag = function(key, value){
             $scope.settings.osmtags[key] = value;
+        };
+        $scope.addOSMFilter = function(filter){
+            $scope.settings.osmfilter.push(filter);
         };
         $scope.getCurrentNodeValueFromFeature = function(key){
             if ($scope.settings.osmtags[key] !== undefined){
@@ -873,6 +956,28 @@ angular.module('myApp.controllers').controller(
                 ]
             );
         };
+        $scope.addToOSM = function(){
+            $scope.loading.addosm = true;
+            osmService.addNode($scope.currentFeature).then(
+                function(data){
+                    $scope.loading.addosm = false;
+                    $scope.setLoadingStatus('addosm', 'success', 4000);
+                    messagesService.addInfo('Point added', 3000);
+                }, function(){
+                    $scope.loading.addosm = false;
+                    $scope.setLoadingStatus('addosm', 'error', 4000);
+                    messagesService.addError('Can t add this point', 10000);
+                }
+            );
+        };
+        $scope.displayAllFeatures = function(){
+            $scope.queryFeature = '';
+        };
+        $scope.toggleOSMGeoJSON = function(){
+            var old = $scope.leafletGeojson;
+            $scope.leafletGeojson = $scope.hiddenLeafletGeojson;
+            $scope.hiddenLeafletGeojson = old;
+        };
         $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
             console.log('click');
             $scope.setCurrentNode(featureSelected);
@@ -885,8 +990,6 @@ angular.module('myApp.controllers').controller(
                 $scope.reloadFeatures();
             }
         }, true);
-
-
         $scope.reloadFeatures();
         $scope.reloadSettings();
         //update services from peristent settings

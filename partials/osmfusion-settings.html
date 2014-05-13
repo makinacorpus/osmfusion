@@ -110,22 +110,4 @@
   </div>
 </div>
   </tab>
-  <tab heading="Debug">
-<div class="panel panel-default" ng-show="currentFeature">
-  <div class="panel-heading">Current feature Key/Value</div>
-  <div class="panel-body">
-    <table class="table table-condensed">
-      <tr ng-repeat="(key, value) in currentFeature.properties">
-        <td>
-          {{key}}
-        </td>
-        <td>
-          <input class="form-control" type="text" value="{{value}}"/>
-        </td>
-      </tr>
-    </table>
-  </div>
-</div>
-
-  </tab>
 </tabset>

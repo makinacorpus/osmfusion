@@ -27,13 +27,9 @@
     <div class="panel" ng-show="loggedin" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
       <div class="panel-heading" translate>Source Features</div>
       <div class="panel-body">
-      <div class="input-group margin-bottom-sm">
-          <input type="search" class="form-control" ng-model="q" placeholder="Rechercher une feature" />
-          <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
-      </div>
         <div class="list-group">
           <a class="list-group-item" title="{{getFeatureName(feature)}}"
-             ng-repeat="feature in features | filter:q"
+             ng-repeat="feature in features | filter:queryFeature"
              ng-class="{'active': getFeatureID(currentFeature) === getFeatureID(feature)}"
              ng-click="setCurrentFeature(feature)">
               [{{getFeatureID(feature)}}] {{getFeatureName(feature)}}</a>
@@ -45,6 +41,9 @@
           <div class="btn-group">
             <button type="button" class="btn btn-default" ng-click="selectNextFeature()">Next</button>
           </div>
+          <div class="btn-group">
+            <button type="button" class="btn btn-default" ng-click="displayAllFeatures()">Display All</button>
+          </div>
         </div>
       </div>
     </div>
@@ -53,7 +52,7 @@
   <div class="panel-heading">Tags</div>
   <div class="panel-body">
     <tabset>
-      <tab heading="Edit OSM Node" active="!settings.preferAdding">
+      <tab heading="Edit OSM Node">
         <div class="alert alert-info" ng-show="!currentNode">
           <i ng-show="loading.osmfeatures" class="fa fa-refresh fa-spin pull-right"></i>
           <p translate>Please try to find on the map a node to update. If there is nothing to update, go to the 'Add OSM Node' tab.</p>
@@ -95,7 +94,7 @@
         </div>
 
       </tab>
-      <tab heading="Add OSM Node" active="settings.preferAdding">
+      <tab heading="Add OSM Node">
 
         <div ng-if="currentFeature.osm">
           <h2>Current source feature transformed for OSM</h2>
@@ -114,10 +113,31 @@
               </td>
             </tr>
           </table>
-          <button class="btn btn-primary btn-lg" disabled="disabled" ng-click="addToOSM()" >Add to OSM (under dev)</button>
+          <button class="btn btn-primary btn-lg" ng-click="addToOSM()" >Add to OSM</button>
+          <i ng-show="loading.addosm" class="fa fa-refresh fa-spin"></i>
+          <i class="fa fa-check fa-fw text-success" ng-show="loading.addosmsuccess"></i>
+          <i class="fa fa-times fa-fw text-danger" ng-show="loading.addosmerror"></i>
+
         </div>
 
       </tab>
+        <tab heading="Debug">
+          <div class="panel panel-default" ng-show="currentFeature">
+            <div class="panel-heading">Current feature Key/Value</div>
+            <div class="panel-body">
+              <table class="table table-condensed">
+                <tr ng-repeat="(key, value) in currentFeature.properties">
+                  <td>
+                    {{key}}
+                  </td>
+                  <td>
+                    <input class="form-control" type="text" value="{{value}}"/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </tab>
 
     </tabset>
 
@@ -149,8 +169,8 @@
     </accordion>
 
 
-
-    <leaflet center="currentMap" markers="markers" width="100%" height="600" geojson="leafletGeojson"></leaflet>
+    <button class="btn btn-default" ng-click="toggleOSMGeoJSON()">Toggle OSM layer</button>
+    <leaflet center="currentMap" markers="markers" layers="layers" width="100%" height="600" geojson="leafletGeojson"></leaflet>
 
     <a target="_blank" ng-href="http://fr.wikipedia.org/w/index.php?search={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Wikipedia</a>
     <a target="_blank" ng-href="https://www.google.com/maps?t=m&ll={{currentMap.lat}},{{currentMap.lng}}&z=18&output=classic&dg=opt&q={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Google Maps</a>
