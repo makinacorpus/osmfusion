@@ -53,6 +53,8 @@ angular.module('myApp.controllers').controller(
                 }
             }
         };
+        $scope.leafletGeojson = {};
+        var hiddenLeafletGeojson;
         var idIcon = L.icon({
             iconUrl: 'images/id-icon.png',
             shadowUrl: 'images/marker-shadow.png',
@@ -415,10 +417,26 @@ angular.module('myApp.controllers').controller(
             );
         };
         $scope.addToOSM = function(){
-
+            $scope.loading.addosm = true;
+            osmService.addNode($scope.currentFeature).then(
+                function(data){
+                    $scope.loading.addosm = false;
+                    $scope.setLoadingStatus('addosm', 'success', 4000);
+                    messagesService.addInfo('Point added', 3000);
+                }, function(){
+                    $scope.loading.addosm = false;
+                    $scope.setLoadingStatus('addosm', 'error', 4000);
+                    messagesService.addError('Can t add this point', 10000);
+                }
+            );
         };
         $scope.displayAllFeatures = function(){
             $scope.queryFeature = '';
+        };
+        $scope.toggleOSMGeoJSON = function(){
+            var old = $scope.leafletGeojson;
+            $scope.leafletGeojson = $scope.hiddenLeafletGeojson;
+            $scope.hiddenLeafletGeojson = old;
         };
         $scope.$on("leafletDirectiveMap.geojsonClick", function(ev, featureSelected) {
             console.log('click');

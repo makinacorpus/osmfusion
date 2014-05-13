@@ -213,6 +213,32 @@ angular.module('myApp.services').factory('osmService',
                 }
                 //put request !!
                 return this.put('/0.6/' + nodeType + '/' + currentNode.properties.id, osm.outerHTML);
+            },
+            addNode: function(feature){
+                var newNode = '<osm><node changeset="CHANGESET" lat="LAT" lon="LNG">TAGS</node></osm>';
+                var tagTPL = '<tag k="KEY" v="VALUE"/>';
+                var tags = '';
+                var value;
+                newNode = newNode.replace('CHANGESET', this._changeset);
+                for (var property in feature.osm) {
+                    if (feature.osm.hasOwnProperty(property)) {
+                        value = feature.osm[property];
+                        if (value === undefined || value === null){
+                            continue;
+                        }else{
+                            tags = tags + tagTPL.replace('KEY', property).replace('VALUE', feature.osm[property]);
+                        }
+                    }
+                }
+                newNode = newNode.replace('TAGS', tags);
+                if (feature.geometry.type === 'Point'){
+                    newNode = newNode.replace('LNG', feature.geometry.coordinates[0]);
+                    newNode = newNode.replace('LAT', feature.geometry.coordinates[1]);
+                }else{
+                    throw new Error('Can t save sth else than Point');
+                }
+                console.log('create new node with ' + newNode);
+                return this.put('/0.6/node/create', newNode);
             }
         };
         return service;
