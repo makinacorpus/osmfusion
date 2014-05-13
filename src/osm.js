@@ -3,10 +3,6 @@
 angular.module('myApp.services').factory('osmService',
     ['$base64', '$cookieStore', '$http', '$q',
     function ($base64, $cookieStore, $http, $q) {
-        var API = 'http://api.openstreetmap.org/api';
-//        var API = 'http://api06.dev.openstreetmap.org/api';
-        // initialize to whatever is in the cookie, if anything
-        //$http.defaults.headers.common['Authorization'] = 'Basic ' + $cookieStore.get('authdata');
         var parseXml;
 
         if (typeof window.DOMParser !== 'undefined') {
@@ -31,6 +27,7 @@ angular.module('myApp.services').factory('osmService',
             _login: '',
             _nodes: [],
             _changeset: '',
+            API: 'http://api.openstreetmap.org/api',
 
             validateCredentials: function(){
                 var deferred = $q.defer();
@@ -72,7 +69,7 @@ angular.module('myApp.services').factory('osmService',
                 var deferred = $q.defer();
                 var self = this;
 
-                $http.get(API + method, config).then(function(data){
+                $http.get(self.API + method, config).then(function(data){
                     var contentType = data.headers()['content-type'];
                     var results;
                     if (contentType.indexOf("application/xml;") === 0){
@@ -96,7 +93,7 @@ angular.module('myApp.services').factory('osmService',
                     config = {};
                 }
                 config.headers = {Authorization: this.getAuthorization()};
-                $http.put(API + method, content, config).then(function(data){
+                $http.put(self.API + method, content, config).then(function(data){
                     var contentType = data.headers()['content-type'];
                     var results;
                     if (contentType.indexOf("application/xml;") === 0){
@@ -128,11 +125,6 @@ angular.module('myApp.services').factory('osmService',
                 this._nodes = xmlNodes;
                 return osmtogeojson(xmlNodes);
             },
-//OSM API: https://wiki.openstreetmap.org/wiki/API_v0.6
-
-            /*
-            https://wiki.openstreetmap.org/wiki/API_v0.6#Create:_PUT_.2Fapi.2F0.6.2Fchangeset.2Fcreate
-             */
             createChangeset: function(sourceURI){
                 var self = this;
                 var deferred = $q.defer();
@@ -174,12 +166,13 @@ angular.module('myApp.services').factory('osmService',
                 //we need to do the diff and build the xml
                 //first try to find the node by id
                 var node = this._nodes.getElementById(currentNode.properties.id);
+                var deferred = $q.defer(); //only for errors
                 if (node === null){
-                    var deferred = $q.defer();
                     deferred.reject({
                         msg: 'can t find node',
                         currentNode: currentNode,
-                        updatedNode: updatedNode
+                        updatedNode: updatedNode,
+                        osmNode: node
                     });
                     return deferred.promise;
                 }
@@ -202,8 +195,24 @@ angular.module('myApp.services').factory('osmService',
                         node.appendChild(tag);
                     }
                 }
+                var nodeType;
+                if (updatedNode.geometry.type === 'Polygon'){
+                    nodeType = 'way';
+                }else if (updatedNode.geometry.type === 'Point'){
+                    nodeType = 'node';
+                }else if (updateNode.geometry.type === 'LineString'){
+                    nodeType = 'way';
+                }else{
+                    deferred.reject({
+                        msg: 'geojson type not supported',
+                        currentNode: currentNode,
+                        updatedNode: updatedNode,
+                        osmNode: node
+                    });
+                    return deferred.promise;
+                }
                 //put request !!
-                return this.put('/0.6/node/' + currentNode.properties.id, osm.outerHTML);
+                return this.put('/0.6/' + nodeType + '/' + currentNode.properties.id, osm.outerHTML);
             }
         };
         return service;

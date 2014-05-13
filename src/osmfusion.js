@@ -210,7 +210,7 @@ angular.module('myApp.controllers').controller(
                 $scope.markers.Localisation.lng = lng;
                 $scope.markers.Localisation.lat = lat;
                 $scope.markers.Localisation.message = $scope.getFeatureName(feature);
-                map.setView(L.latLng(lat, lng), 17);
+                map.setView(L.latLng(lat, lng), 18);
                 $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
                 var b = map.getBounds();
                 $scope.loading.osmfeatures = true;
