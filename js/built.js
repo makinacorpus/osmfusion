@@ -549,8 +549,8 @@ angular.module('myApp').config(['$routeProvider', function($routeProvider) {
 }]);
 angular.module('myApp.controllers').controller(
     'OpendataController',
-    ['$scope', '$http', '$timeout', '$filter', 'messagesService', 'osmService', 'leafletData', '$localStorage',
-    function($scope, $http, $timeout, $filter, messagesService, osmService, leafletData, $localStorage){
+    ['$scope', '$http', '$timeout', '$location', 'messagesService', 'osmService', 'leafletData', '$localStorage',
+    function($scope, $http, $timeout, $location, messagesService, osmService, leafletData, $localStorage){
 
         //configuration
         $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
@@ -570,24 +570,19 @@ angular.module('myApp.controllers').controller(
                     name: 'OpenStreetMap',
                     url: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                     type: 'xyz',
-                    maxZoom: 20,
-                    visible: true
-                },
-                hot: {
-                    name: 'Hot',
-                    type: 'xyz',
-                    visible: false,
-                    url: 'http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+                    visible: true,
                     layerParams: {
-                        attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles courtesy of <a href="http://hot.openstreetmap.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+                        maxZoom: 20
                     }
                 },
                 esriphoto: {
                     name: 'Photo (ESRI)',
                     type: 'xyz',
+                    maxZoom: 20,
                     visible: false,
                     url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
                     layerParams: {
+                        maxZoom: 20,
                         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
                     }
                 }
@@ -789,13 +784,17 @@ angular.module('myApp.controllers').controller(
             $scope.nodes = undefined;
             var lng = parseFloat(feature.geometry.coordinates[0]);
             var lat = parseFloat(feature.geometry.coordinates[1]);
+//            $scope.currentMap = {lat: lat, lng: lng, zoom: 18};
+//            $scope.currentMap.lat = lat;
+//            $scope.currentMap.lng = lng;
+//            $scope.currentMap.zoom = 18;
             $scope.markers.Localisation.lng = lng;
             $scope.markers.Localisation.lat = lat;
             $scope.markers.Localisation.message = $scope.getFeatureName(feature);
             $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
             $scope.loading.osmfeatures = true;
-            leafletData.getMap().then(function(map){                
-                //purge cache of search
+            leafletData.getMap().then(function(map){
+                $scope.currentMap = {lat: lat, lng: lng, zoom: 18};
                 map.setView(L.latLng(lat, lng), 18);
                 var b = map.getBounds();
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
@@ -876,7 +875,10 @@ angular.module('myApp.controllers').controller(
         };
         $scope.getCurrentNodeValueFromFeature = function(key){
             if ($scope.settings.osmtags[key] !== undefined){
-                return $scope.$eval($scope.settings.osmtags[key]);
+                var value = $scope.$eval($scope.settings.osmtags[key]);
+                if (value !== null){
+                    return value;
+                }
             }
         };
         $scope.deleteOSMTag = function(index){
@@ -990,6 +992,14 @@ angular.module('myApp.controllers').controller(
                 $scope.reloadFeatures();
             }
         }, true);
+        //set url settings from search
+        var search = $location.search();
+        if (search.features !== undefined){
+            $scope.settings.geojsonURI = search.features;
+        }
+        if (search.settings !== undefined){
+            $scope.settings.jsonSettingsURI = search.settings;
+        }
         $scope.reloadFeatures();
         $scope.reloadSettings();
         //update services from peristent settings

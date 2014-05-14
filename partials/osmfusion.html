@@ -1,13 +1,19 @@
 <div ng-include="'./partials/messages.html'"></div>
 
 <div id="maps-wrapper" class="row">
-  <div class="col-md-4 col-md-offset-4">
-
+  <div class="col-md-6">
+    <accordion>
+      <accordion-group heading="Configuration">
+        <div ng-include="'./partials/osmfusion-settings.html'"></div>
+      </accordion-group>
+    </accordion>
+  </div>
+  <div class="col-md-3 col-md-offset-3">
     <div class="panel panel-default" ng-show="loggedin">
-      <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
+        <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
     </div>
 
-    <div class="panel panel-default" ng-show="!loggedin">
+    <div class="panel panel-default" ng-show="!loggedin" ui-keypress="{13:'login()'}">
       <div class="panel-heading" translate>OSM Login</div>
       <div class="panel-body">
         <div class="form-group">
@@ -24,7 +30,7 @@
 
 <div id="maps-wrapper" class="row" ng-if="loggedin">
   <div class="col-md-6">
-    <div class="panel" ng-show="loggedin" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
+    <div class="panel" ng-show="features" ng-class="{'panel-success': features.length > 0, 'panel-default': features.length === 0}">
       <div class="panel-heading" translate>Source Features</div>
       <div class="panel-body">
         <div class="list-group">
@@ -162,13 +168,6 @@
   </div>
 
   <div class="col-md-6">
-    <accordion>
-      <accordion-group heading="Configuration" is-open="false">
-      <div ng-include="'./partials/osmfusion-settings.html'"></div>
-      </accordion-group>
-    </accordion>
-
-
     <button class="btn btn-default" ng-click="toggleOSMGeoJSON()">Toggle OSM layer</button>
     <leaflet center="currentMap" markers="markers" layers="layers" width="100%" height="600" geojson="leafletGeojson"></leaflet>
 
