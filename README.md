@@ -9,10 +9,9 @@ This project want to stay really simple so it use only client side Javascript an
 http://makinacorpus.github.com/osmfusion
 contact: jeanmichel.francois@makina-corpus.com
 
-How to build it
----------------
+data.nantes.fr
+--------------
 
-To build the project you need bower and gulp
+List of configuration for the data.nantes.fr:
 
-	bower install
-	gulp
+* bibliothèque: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/Hi4v1X&settings=http://goo.gl/ffXwY1
