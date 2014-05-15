@@ -244,18 +244,14 @@ angular.module('myApp.controllers').controller(
             $scope.nodes = undefined;
             var lng = parseFloat(feature.geometry.coordinates[0]);
             var lat = parseFloat(feature.geometry.coordinates[1]);
-//            $scope.currentMap = {lat: lat, lng: lng, zoom: 18};
-//            $scope.currentMap.lat = lat;
-//            $scope.currentMap.lng = lng;
-//            $scope.currentMap.zoom = 18;
             $scope.markers.Localisation.lng = lng;
             $scope.markers.Localisation.lat = lat;
             $scope.markers.Localisation.message = $scope.getFeatureName(feature);
             $scope.currentAddress = $scope.$eval($scope.featureAddressExp);
             $scope.loading.osmfeatures = true;
             leafletData.getMap().then(function(map){
-                $scope.currentMap = {lat: lat, lng: lng, zoom: 18};
-                map.setView(L.latLng(lat, lng), 18);
+                $scope.currentMap = {lat: lat, lng: lng, zoom: 19};
+                map.setView(L.latLng(lat, lng), 19);
                 var b = map.getBounds();
                 var bbox = '' + b.getWest() + ',' + b.getSouth() + ',' + b.getEast() + ',' + b.getNorth();
                 osmService.getMap(bbox).then(function(nodes){
@@ -293,6 +289,7 @@ angular.module('myApp.controllers').controller(
                     };
                 });
                 $scope.currentFeature.osm = {};
+                debugger;
                 for (var property in $scope.settings.osmtags) {
                     if ($scope.settings.osmtags.hasOwnProperty(property)) {
                         $scope.currentFeature.osm[property] = $scope.getCurrentNodeValueFromFeature(property);
