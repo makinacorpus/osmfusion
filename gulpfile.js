@@ -70,4 +70,5 @@ gulp.task('po', function () {
 gulp.task('default', ['scripts', 'copy', 'styles']);
 gulp.task('watch', function () {
   gulp.watch('src/*.js', ['scripts', 'styles', 'copy', 'lint']);
+  gulp.watch('src/*.css', ['styles']);
 });
