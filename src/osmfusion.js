@@ -289,7 +289,6 @@ angular.module('myApp.controllers').controller(
                     };
                 });
                 $scope.currentFeature.osm = {};
-                debugger;
                 for (var property in $scope.settings.osmtags) {
                     if ($scope.settings.osmtags.hasOwnProperty(property)) {
                         $scope.currentFeature.osm[property] = $scope.getCurrentNodeValueFromFeature(property);
@@ -333,7 +332,9 @@ angular.module('myApp.controllers').controller(
         $scope.getCurrentNodeValueFromFeature = function(key){
             if ($scope.settings.osmtags[key] !== undefined){
                 var value = $scope.$eval($scope.settings.osmtags[key]);
-                if (value !== null){
+                //bug reported to yql: null become 'null' string
+                //https://developer.yahoo.com/forum/General-Discussion-at-YDN/null-value-transformed-as-a-string/1400156534299-3287e8a9-b810-4bd2-93a2-18724566bf94?msg=1
+                if (value !== null && value !== 'null'){
                     return value;
                 }
             }
