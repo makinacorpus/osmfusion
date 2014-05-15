@@ -31,6 +31,8 @@ data.nantes.fr
 
 * culture monument: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/nO8GXF&settings=http://goo.gl/9Dg1xw
 
+* culture musée: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/LWoHCv&settings=http://goo.gl/8m8R8J
+
 * salle de spectacle: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/GwKLA2&settings=http://goo.gl/pIWwRP
 
 * caves à vin: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/bOJnto&settings=http://goo.gl/qxEA0j
@@ -38,5 +40,3 @@ data.nantes.fr
 * culture tourisme restauration: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/sOElgD&settings=http://goo.gl/ti4ZAE
 
 .. * : http://makinacorpus.github.io/osmfusion/#/?features=&settings=
-
-musee : http://goo.gl/8m8R8J
