@@ -34,3 +34,14 @@ data.nantes.fr
 * école supérieur: http://makinacorpus.github.io/osmfusion/#/?features=&settings=
 * centre de formation: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/71aoHZ&settings=http://goo.gl/GXHbyp
 * centre de recherche: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/HIc62A&settings=http://goo.gl/leMyr1
+
+* culte boudhiste: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/bcjHdl&settings=http://goo.gl/XXLCXp
+* culte catholique: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/Sm5iRH&settings=http://goo.gl/RDHSFS
+* culte juif: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/RpLCm8&settings=http://goo.gl/pJ26YE
+* culte musulman: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/5wDVy4&settings=http://goo.gl/5xOpQu
+* culte orthodox: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/l4Xaww&settings=http://goo.gl/GhH4ig
+* culte protestant: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/azH9at&settings=http://goo.gl/7LhkdV
+
+* jardins familiaux: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/HBBfS0&settings=http://goo.gl/fmZ9RM
+* projets éoliens: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/hV0jeH&settings=http://goo.gl/SBXZAz
+* déchèteries: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/gHwVDH&settings=http://goo.gl/aRNJPf
