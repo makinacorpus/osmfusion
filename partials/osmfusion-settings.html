@@ -59,7 +59,7 @@
 
     <p class="help-block">You can write angular expression to fill the value that will be used to insert / update OSM database. For more information about angular expression please read the following <a href="https://docs.angularjs.org/guide/expression">Angular Expressions</a></p>
     <table class="table table-condensed">
-      <tr ng-repeat="(key, value) in settings.osmtags track by $index">
+      <tr ng-repeat="(key, value) in settings.osmtags">
         <td width="20px">
           <button class="btn btn-danger" ng-click="deleteOSMTag(key)"><i class="fa fa-times-circle-o"></i></button>
         </td>

@@ -8,7 +8,12 @@
       </accordion-group>
     </accordion>
   </div>
-  <div class="col-md-3 col-md-offset-3">
+  <div class="col-md-3">
+    <button ng-show="!settings.changesetID" class="btn btn-default" ng-click="createChangeset()" >Create change set</button>
+    <button class="btn btn-default" ng-click="getLastOpenedChangesetId()" >get Changeset</button>
+    <button ng-show="settings.changesetID" class="btn btn-primary" ng-click="closeChangeset()" >Save (close changeset {{settings.changesetID}})</button>
+  </div>
+  <div class="col-md-3">
     <div class="panel panel-default" ng-show="loggedin">
         <button class="form-control btn btn-danger" ng-click="logout()">Logout</button>
     </div>
@@ -150,27 +155,13 @@
 
   </div>
 </div>
-<div class="panel panel-default">
-  <div class="panel-heading">Changeset</div>
-  <div class="panel-body">
-    <p>The current changeset ID is {{settings.changesetID}}</p>
-
-    <button ng-show="settings.changesetID" class="btn btn-primary btn-lg" ng-click="closeChangeset()" >Save (close changeset)</button>
-
-    <button class="btn btn-primary" ng-click="getLastOpenedChangesetId()" >get Changeset</button>
-    <button ng-show="!settings.changesetID" class="btn btn-default" ng-click="createChangeset()" >create change set</button>
-
-  </div>
-</div>
-
-
 
   </div>
 
   <div class="col-md-6">
-    <button class="btn btn-default" ng-click="toggleOSMGeoJSON()">Toggle OSM layer</button>
     <leaflet center="currentMap" markers="markers" layers="layers" width="100%" height="600" geojson="leafletGeojson"></leaflet>
 
+    <button class="btn btn-default" ng-click="toggleOSMGeoJSON()">Toggle OSM layer</button>
     <a target="_blank" ng-href="http://fr.wikipedia.org/w/index.php?search={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Wikipedia</a>
     <a target="_blank" ng-href="https://www.google.com/maps?t=m&ll={{currentMap.lat}},{{currentMap.lng}}&z=18&output=classic&dg=opt&q={{getFeatureName(currentFeature)}}" class="btn btn-default" translate>Open in Google Maps</a>
     <a target="_blank" ng-href="https://openstreetmap.org/edit#map=19/{{currentMap.lat}}/{{currentMap.lng}}" class="btn btn-default" translate>Open in OpenStreetMap editor</a>
