@@ -409,10 +409,10 @@ angular.module('myApp.controllers').controller(
                 ]
             );
         };
-        $scope.selectPrevisouFeature = function(){
+        $scope.selectPreviousFeature = function(){
             $scope.setCurrentFeature(
                 $scope.features[
-                    $scope.features.indexOf($scope.currentFeature) + 1
+                    $scope.features.indexOf($scope.currentFeature) - 1
                 ]
             );
         };
