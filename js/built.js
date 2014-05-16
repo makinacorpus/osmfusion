@@ -869,6 +869,13 @@ angular.module('myApp.controllers').controller(
         $scope.addOSMFilter = function(filter){
             $scope.settings.osmfilter.push(filter);
         };
+        $scope.deleteOSMFilter = function(filter){
+            for (var i = 0; i < $scope.settings.osmfilter.length; i++) {
+                if (filter === $scope.settings.osmfilter[i]){
+                    $scope.settings.osmfilter.splice(i, 1);
+                }
+            }
+        };
         $scope.getCurrentNodeValueFromFeature = function(key){
             if ($scope.settings.osmtags[key] !== undefined){
                 var value = $scope.$eval($scope.settings.osmtags[key]);
