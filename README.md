@@ -45,3 +45,11 @@ data.nantes.fr
 * jardins familiaux: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/HBBfS0&settings=http://goo.gl/fmZ9RM
 * projets éoliens: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/hV0jeH&settings=http://goo.gl/SBXZAz
 * déchèteries: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/gHwVDH&settings=http://goo.gl/aRNJPf
+
+* Justice / Militaire: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/Yj5lbF&settings=http://goo.gl/2YQRqS
+* Justice / Gendarmerie: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/Xn3C8E&settings=http://goo.gl/OrgFA8
+* Justice : http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/cT5Q6g&settings=http://goo.gl/xlMAB6
+* Justice / Police: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/VnR0yw&settings=http://goo.gl/Uz3kVL
+* Pompier: http://makinacorpus.github.io/osmfusion/#/?features=http://goo.gl/sBRGHZ&settings=http://goo.gl/KERv4v
+
+
