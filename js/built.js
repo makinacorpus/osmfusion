@@ -553,6 +553,7 @@ angular.module('myApp.controllers').controller(
     function($scope, $http, $timeout, $location, messagesService, osmService, leafletData, $localStorage){
 
         //configuration
+        $scope.search = $location.search();
         $scope.currentMap = {lat: 47.2383, lng: -1.5603, zoom: 11};
         $scope.markers = {
             Localisation: {
@@ -573,17 +574,6 @@ angular.module('myApp.controllers').controller(
                     visible: true,
                     layerParams: {
                         maxZoom: 20
-                    }
-                },
-                esriphoto: {
-                    name: 'Photo (ESRI)',
-                    type: 'xyz',
-                    maxZoom: 20,
-                    visible: false,
-                    url: 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                    layerParams: {
-                        maxZoom: 20,
-                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
                     }
                 }
             }
@@ -613,8 +603,8 @@ angular.module('myApp.controllers').controller(
         };
 
         $scope.settings = $localStorage.$default({
-            geojsonURI: '',
-            jsonSettingsURI: '',
+            featuresURL: '',
+            settingsURL: '',
             featureName: '',
             featureID: '',
             username: '',
@@ -696,7 +686,7 @@ angular.module('myApp.controllers').controller(
             var url, config;
             config = {
                 params: {
-                    q: "select * from json where url='" + $scope.settings.geojsonURI + "';",
+                    q: "select * from json where url='" + $scope.settings.featuresURL + "';",
                     format: 'json'
                 }
             };
@@ -720,7 +710,7 @@ angular.module('myApp.controllers').controller(
             var url, config;
             config = {
                 params: {
-                    q: "select * from json where url='" + $scope.settings.jsonSettingsURI + "';",
+                    q: "select * from json where url='" + $scope.settings.settingsURL + "';",
                     format: 'json'
                 }
             };
@@ -908,7 +898,7 @@ angular.module('myApp.controllers').controller(
         };
 
         $scope.createChangeset = function(){
-            osmService.createChangeset($scope.settings.geojsonURI).then(
+            osmService.createChangeset($scope.settings.featuresURL).then(
                 function(data){
                     $scope.settings.changesetID = data;
                 }
@@ -998,12 +988,11 @@ angular.module('myApp.controllers').controller(
             }
         }, true);
         //set url settings from search
-        var search = $location.search();
-        if (search.features !== undefined){
-            $scope.settings.geojsonURI = search.features;
+        if ($scope.search.features !== undefined){
+            $scope.settings.featuresURL = $scope.search.features;
         }
-        if (search.settings !== undefined){
-            $scope.settings.jsonSettingsURI = search.settings;
+        if ($scope.search.settings !== undefined){
+            $scope.settings.settingsURL = $scope.search.settings;
         }
         $scope.reloadFeatures();
         $scope.reloadSettings();

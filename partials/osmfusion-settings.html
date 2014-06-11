@@ -4,7 +4,7 @@
   <label>Source</label>
   <p class="help-block">URL of the geojson file to use as features source</p>
   <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadFeatures()'}">
-    <input type="text" class="form-control" ng-model="settings.geojsonURI"/>
+    <input type="text" class="form-control" ng-model="settings.featuresURL"/>
     <span class="input-group-addon">
       <i class="fa fa-refresh fa-spin" ng-show="loading.geojson"></i>
       <i class="fa fa-check fa-fw text-success" ng-show="loading.geojsonsuccess"></i>
@@ -14,7 +14,7 @@
   <label>Configuration</label>
   <p class="help-block">URL of the json file to use as configuration source</p>
   <div class="input-group margin-bottom-sm" ui-keypress="{13:'reloadSettings()'}">
-    <input type="text" class="form-control" ng-model="settings.jsonSettingsURI"/>
+    <input type="text" class="form-control" ng-model="settings.settingsURL"/>
     <span class="input-group-addon">
       <i class="fa fa-refresh fa-spin" ng-show="loading.jsonsettings"></i>
       <i class="fa fa-check fa-fw text-success" ng-show="loading.jsonsettingssuccess"></i>
