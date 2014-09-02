@@ -6,16 +6,16 @@
 L.Icon.Default.imagePath = 'images';
 //create all myApp modules
 angular.module('myApp', [
-    'ngRoute',
+    'base64',
     'myApp.services',
     'myApp.controllers',
     'myApp.directives',
-    'ui.bootstrap',
-    'leaflet-directive',
     'gettext',
+    'leaflet-directive',
+    'ui.bootstrap',
     'ui.keypress',
-    'base64',
     'ngCookies',
+    'ngRoute',
     'ngStorage'
 ]);
 

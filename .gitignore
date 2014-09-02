@@ -1,7 +1,13 @@
+/gh-pages
 /.cover*
 *.mo
 /bower_components
 !.gitkeep
 .DS_Store
 .idea
-/static
+/static/css
+/static/js
+/static/fonts
+/static/translations
+*.sublime-project
+*.sublime-workspace
